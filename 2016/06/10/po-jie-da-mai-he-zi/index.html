@@ -87,12 +87,22 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Vic's Blog">
-<meta property="og:url" content="http://vicx.me/index.html">
+<meta name="description" content="为什么要破解大麦盒子在开机启动时会验证客户端IP是否为长城宽带的IP，如果不是则弹出一个覆盖在最上层的Activity，阻止用户正常使用大麦盒子。
+手上这个大麦盒子是搬家时上个租客办理长城宽带留下的，为了省钱就打算不买新的盒子，毕竟也很少会看电视。
+破解思路猜测盒子的IP验证方式应该是通过后台应用通过访问长城宽带某服务，长城宽带服务器端通过查询收到的IP包中的src ip而判断其是否为长城宽带的用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="破解大麦盒子网络限制">
+<meta property="og:url" content="http://vicx.me/2016/06/10/po-jie-da-mai-he-zi/index.html">
 <meta property="og:site_name" content="Vic's Blog">
+<meta property="og:description" content="为什么要破解大麦盒子在开机启动时会验证客户端IP是否为长城宽带的IP，如果不是则弹出一个覆盖在最上层的Activity，阻止用户正常使用大麦盒子。
+手上这个大麦盒子是搬家时上个租客办理长城宽带留下的，为了省钱就打算不买新的盒子，毕竟也很少会看电视。
+破解思路猜测盒子的IP验证方式应该是通过后台应用通过访问长城宽带某服务，长城宽带服务器端通过查询收到的IP包中的src ip而判断其是否为长城宽带的用">
+<meta property="og:updated_time" content="2017-02-08T15:22:08.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Vic's Blog">
+<meta name="twitter:title" content="破解大麦盒子网络限制">
+<meta name="twitter:description" content="为什么要破解大麦盒子在开机启动时会验证客户端IP是否为长城宽带的IP，如果不是则弹出一个覆盖在最上层的Activity，阻止用户正常使用大麦盒子。
+手上这个大麦盒子是搬家时上个租客办理长城宽带留下的，为了省钱就打算不买新的盒子，毕竟也很少会看电视。
+破解思路猜测盒子的IP验证方式应该是通过后台应用通过访问长城宽带某服务，长城宽带服务器端通过查询收到的IP包中的src ip而判断其是否为长城宽带的用">
 
 
 
@@ -120,13 +130,13 @@
 
 
 
-  <link rel="canonical" href="http://vicx.me/"/>
+  <link rel="canonical" href="http://vicx.me/2016/06/10/po-jie-da-mai-he-zi/"/>
 
 
 
 
 
-  <title> Vic's Blog </title>
+  <title> 破解大麦盒子网络限制 | Vic's Blog </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -151,9 +161,7 @@
     
   
 
-  <div class="container one-collumn sidebar-position-left 
-   page-home 
- ">
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -234,9 +242,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -269,10 +277,7 @@
             
             
               
-                
-                <a class="post-title-link" href="/2016/06/10/po-jie-da-mai-he-zi/" itemprop="url">
-                  破解大麦盒子网络限制
-                </a>
+                破解大麦盒子网络限制
               
             
           </h1>
@@ -323,9 +328,7 @@
       
 
       
-        
-          
-            <h1 id="为什么要破解"><a href="#为什么要破解" class="headerlink" title="为什么要破解"></a>为什么要破解</h1><p>大麦盒子在开机启动时会验证客户端IP是否为长城宽带的IP，如果不是则弹出一个覆盖在最上层的Activity，阻止用户正常使用大麦盒子。</p>
+        <h1 id="为什么要破解"><a href="#为什么要破解" class="headerlink" title="为什么要破解"></a>为什么要破解</h1><p>大麦盒子在开机启动时会验证客户端IP是否为长城宽带的IP，如果不是则弹出一个覆盖在最上层的Activity，阻止用户正常使用大麦盒子。</p>
 <p>手上这个大麦盒子是搬家时上个租客办理长城宽带留下的，为了省钱就打算不买新的盒子，毕竟也很少会看电视。</p>
 <h1 id="破解思路"><a href="#破解思路" class="headerlink" title="破解思路"></a>破解思路</h1><h2 id="猜测盒子的IP验证方式"><a href="#猜测盒子的IP验证方式" class="headerlink" title="猜测盒子的IP验证方式"></a>猜测盒子的IP验证方式</h2><p>应该是通过后台应用通过访问长城宽带某服务，长城宽带服务器端通过查询收到的IP包中的src ip而判断其是否为长城宽带的用户。</p>
 <h2 id="破解方式"><a href="#破解方式" class="headerlink" title="破解方式"></a>破解方式</h2><ol>
@@ -341,16 +344,20 @@
 </li>
 </ol>
 
-          
+      
+    </div>
+
+    <div>
+      
         
+
       
     </div>
 
     <div>
       
-    </div>
+        
 
-    <div>
       
     </div>
 
@@ -359,21 +366,22 @@
       
 
       
-
+        
       
 
       
+
       
-        <div class="post-eof"></div>
       
     </footer>
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
           
           </div>
@@ -381,6 +389,10 @@
 
 
           
+  <div class="comments" id="comments">
+    
+  </div>
+
 
         </div>
         
@@ -400,8 +412,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -443,6 +464,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#为什么要破解"><span class="nav-number">1.</span> <span class="nav-text">为什么要破解</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#破解思路"><span class="nav-number">2.</span> <span class="nav-text">破解思路</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#猜测盒子的IP验证方式"><span class="nav-number">2.1.</span> <span class="nav-text">猜测盒子的IP验证方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#破解方式"><span class="nav-number">2.2.</span> <span class="nav-text">破解方式</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
     </div>
@@ -542,6 +579,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
 
   
 
