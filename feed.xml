@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Vic's Blog</title>
+    <description>请叫我一声“教练”</description>
+    <link>http://vicx.me/</link>
+    <atom:link href="http://vicx.me/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Fri, 10 Feb 2017 09:37:19 +0800</pubDate>
+    <lastBuildDate>Fri, 10 Feb 2017 09:37:19 +0800</lastBuildDate>
+    <generator>Jekyll v3.3.1</generator>
+    
+      <item>
+        <title>如何使用本站</title>
+        <description>&lt;h1 id=&quot;github-pages--jekyll&quot;&gt;Github pages + jekyll的优势&lt;/h1&gt;
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;管理方便
+之前自己也有买过服务器，搭过wordpress，但是整体感觉就是折腾。尤其是当你买的服务器同时还在运行其它服务的时候，管理起来很麻烦.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;写作更快捷
+还有一个问就是用WordPress的话，需要花时间在布局上，而使用jekyll，采用markdown写博客则可以将注意力集中在内容本身。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&quot;section&quot;&gt;建站过程&lt;/h1&gt;
+&lt;p&gt;在搭建本站时，参考的是&lt;a href=&quot;https://help.github.com/articles/using-jekyll-with-pages/&quot;&gt;官方教程&lt;/a&gt;,这里是我&lt;a href=&quot;/pdfs/Using_Jekyll_with_Pages.pdf&quot;&gt;缓存的PDF版本&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;相关资料&lt;/h1&gt;
+&lt;ol&gt;
+  &lt;li&gt;Markdown
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;https://kramdown.gettalong.org/syntax.html&quot;&gt;kramdown 语法&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;jekyll
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;http://jekyllrb.com/&quot;&gt;Jekyll 官网&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;http://jekyllrb.com/docs/variables/&quot;&gt;Jekyll 文档&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Liquid
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;http://liquidmarkup.org/&quot;&gt;liquid 介绍&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;https://docs.shopify.com/themes/liquid-documentation/basics/operators&quot;&gt;liquid 语法快速入门&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+</description>
+        <pubDate>Tue, 01 Dec 2015 23:39:20 +0800</pubDate>
+        <link>http://vicx.me/web/2015/12/01/new-site.html</link>
+        <guid isPermaLink="true">http://vicx.me/web/2015/12/01/new-site.html</guid>
+        
+        <category>web</category>
+        
+        <category>github-pages</category>
+        
+        <category>jekyll</category>
+        
+        
+        <category>web</category>
+        
+      </item>
+    
+      <item>
+        <title>Welcome to Jekyll!</title>
+        <description>&lt;p&gt;You’ll find this post in your &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+
+&lt;p&gt;To add new posts, simply add a file in the &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory that follows the convention &lt;code class=&quot;highlighter-rouge&quot;&gt;YYYY-MM-DD-name-of-post.ext&lt;/code&gt; and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
+
+&lt;p&gt;Jekyll also offers powerful support for code snippets:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hi, &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Tom'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#=&amp;gt; prints 'Hi, Tom' to STDOUT.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Check out the &lt;a href=&quot;http://jekyllrb.com/docs/home&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://talk.jekyllrb.com/&quot;&gt;Jekyll Talk&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 30 Nov 2015 23:39:20 +0800</pubDate>
+        <link>http://vicx.me/jekyll/update/2015/11/30/welcome-to-jekyll.html</link>
+        <guid isPermaLink="true">http://vicx.me/jekyll/update/2015/11/30/welcome-to-jekyll.html</guid>
+        
+        
+        <category>jekyll</category>
+        
+        <category>update</category>
+        
+      </item>
+    
+  </channel>
+</rss>
