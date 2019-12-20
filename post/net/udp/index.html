@@ -69,7 +69,7 @@
 <meta itemprop="description" content="">
 <meta itemprop="datePublished" content="2019-12-20T13:26:45&#43;08:00" />
 <meta itemprop="dateModified" content="2019-12-20T13:26:45&#43;08:00" />
-<meta itemprop="wordCount" content="484">
+<meta itemprop="wordCount" content="506">
 
 
 
@@ -322,9 +322,14 @@
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#heading-1">好处</a></li>
-    <li><a href="#heading-2">缺点，使用注意事项</a></li>
-    <li><a href="#udp">常见的使用UDP的应用层协议</a></li>
+    <li><a href="#heading">协议特点</a>
+      <ul>
+        <li><a href="#heading-1">好处</a></li>
+        <li><a href="#heading-2">缺点，使用注意事项</a></li>
+        <li><a href="#udp">常见的使用UDP的应用层协议</a></li>
+      </ul>
+    </li>
+    <li><a href="#golang-udp-server">golang 实现简单的UDP server</a></li>
   </ul>
 </nav>
   </div>
@@ -332,50 +337,82 @@
 
     
     <div class="post-content">
-      <h1 id="heading">协议特点</h1>
+      <h2 id="heading">协议特点</h2>
 <p>简单地对IP协议进行了一层包裹，添加了源、目的地端口，从而支持了多路复用、多路分解. 协议本身没有流控测流和拥塞控制策略。</p>
 <p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/udp-header.png" alt="UDP 包头"></p>
-<h2 id="heading-1">好处</h2>
+<h3 id="heading-1">好处</h3>
 <ol>
 <li>首部小， UDP 8字节， TCP20字节</li>
 <li>应用层能更加精确地控制发送数据的时间</li>
 </ol>
-<h2 id="heading-2">缺点，使用注意事项</h2>
+<h3 id="heading-2">缺点，使用注意事项</h3>
 <ol>
 <li>不可靠。协议本身不保证应用层的数据，一定能完全达到目的地。但是每个UDP 包裹本身是数据是不会出错（UDP本身有校验和）</li>
 <li>在网络上可能被很多节点的防火墙禁用掉</li>
 </ol>
-<h2 id="udp">常见的使用UDP的应用层协议</h2>
+<h3 id="udp">常见的使用UDP的应用层协议</h3>
 <p>DNS</p>
-<h1 id="golang-udp-server">golang 实现简单的UDP server</h1>
+<h2 id="golang-udp-server">golang 实现简单的UDP server</h2>
 <p>可以自己手动定义协议，但是考虑到易用性和以后升级的需要，可以简单得使用protobuf 来定义以及序列化。</p>
-<pre><code>// Serve &quot;监听&quot;一个UDP端口，如&quot;0.0.0.0:9527&quot;
-func (s *SimpleUDPServer) Serve(address string) error {
-	c, err := net.ListenPacket(&quot;udp&quot;, address)
-	if err != nil {
-		return err
-	}
-	s.conn = c
-	for {
-        // 如果会使用到公网，UDP的包尽量不要太大, 500 字节内为宜
-        // https://stackoverflow.com/questions/1098897/what-is-the-largest-safe-udp-packet-size-on-the-internet
-        // 这里的maxBufferSize 应该 &gt; 你设计的协议中最大包的大小
-		buffer := make([]byte, maxBufferSize)
-		n, addr, err := s.conn.ReadFrom(buffer)
-		if err != nil {
-			logs.Error(&quot;failed to receive udp packet: %v&quot;, err)
-			continue
-		}
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="c1">// Serve &#34;监听&#34;一个UDP端口，如&#34;0.0.0.0:9527&#34;
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">SimpleUDPServer</span><span class="p">)</span> <span class="nf">Serve</span><span class="p">(</span><span class="nx">address</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="nx">c</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">net</span><span class="p">.</span><span class="nf">ListenPacket</span><span class="p">(</span><span class="s">&#34;udp&#34;</span><span class="p">,</span> <span class="nx">address</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">err</span>
+	<span class="p">}</span>
+	<span class="nx">s</span><span class="p">.</span><span class="nx">conn</span> <span class="p">=</span> <span class="nx">c</span>
+	<span class="k">for</span> <span class="p">{</span>
+        <span class="c1">// 如果会使用到公网，UDP的包尽量不要太大, 500 字节内为宜
+</span><span class="c1"></span>        <span class="c1">// https://stackoverflow.com/questions/1098897/what-is-the-largest-safe-udp-packet-size-on-the-internet
+</span><span class="c1"></span>        <span class="c1">// 这里的maxBufferSize 应该 &gt; 你设计的协议中最大包的大小
+</span><span class="c1"></span>		<span class="nx">buffer</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span> <span class="nx">maxBufferSize</span><span class="p">)</span>
+		<span class="nx">n</span><span class="p">,</span> <span class="nx">addr</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">conn</span><span class="p">.</span><span class="nf">ReadFrom</span><span class="p">(</span><span class="nx">buffer</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">logs</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="s">&#34;failed to receive udp packet: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+			<span class="k">continue</span>
+		<span class="p">}</span>
 
-        // 新启一个goroutine 来处理请求。主goroutine 不处理除了接受包之外的其它任何
-		go s.handleRequest(buffer[:n], addr)
-	}
-	return nil
-}
+        <span class="c1">// 新启一个goroutine 来处理请求。主goroutine 不处理除了接受包之外的其它任何
+</span><span class="c1"></span>		<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nf">handleRequest</span><span class="p">(</span><span class="nx">buffer</span><span class="p">[</span><span class="p">:</span><span class="nx">n</span><span class="p">]</span><span class="p">,</span> <span class="nx">addr</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="kc">nil</span>
+<span class="p">}</span>
 
-func (s *SimpleUDPServer) handleRequest(data []byte, addr net.Addr) {
-}
-</code></pre>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">SimpleUDPServer</span><span class="p">)</span> <span class="nf">handleRequest</span><span class="p">(</span><span class="nx">data</span> <span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span> <span class="nx">addr</span> <span class="nx">net</span><span class="p">.</span><span class="nx">Addr</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div>
     </div>
 
     
