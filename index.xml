@@ -40,70 +40,68 @@
         <description>&lt;h2 id=&#34;heading&#34;&gt;起因&lt;/h2&gt;
 &lt;p&gt;家里的WiFi总是过一点时间就会很卡，让人不爽！&lt;/p&gt;
 &lt;h3 id=&#34;heading-1&#34;&gt;网络布局&lt;/h3&gt;
-&lt;p&gt;家里的网络布局和绝大多素普通家庭类似， 一个&lt;strong&gt;200M的电信宽带&lt;/strong&gt;接上一个路由器
+&lt;p&gt;家里的网络布局和大多数普通家庭类似， 一个&lt;strong&gt;200M的电信宽带&lt;/strong&gt;接上一个路由器
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225233420.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;heading-2&#34;&gt;排障流程&lt;/h3&gt;
-&lt;p&gt;从上文的拓扑图看，设备接入互联网慢，可能是两个组件有问题：电信光猫或者是我们的路由器，当然也有可能两者同时故障。&lt;/p&gt;
+&lt;p&gt;从拓扑图看，设备接入互联网慢可能是两个组件有问题：电信光猫或者路由器。&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;路由器问题？&lt;/li&gt;
 &lt;/ol&gt;
 &lt;blockquote&gt;
-&lt;p&gt;通过对比台式电脑和移动设备之间的网速，发现其并不存在明显差距——都是龟速，而路由器是新买不久的支持5G频率的千兆路由器，先大胆&lt;strong&gt;排除是路由器故障&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;对比台式电脑和移动设备之间的网速，并没有发现明显差距——都是龟速。加之路由器是新买不久的支持5G频率的千兆路由器，先大胆&lt;strong&gt;假设不是路由器故障&lt;/strong&gt;。&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;ol start=&#34;2&#34;&gt;
 &lt;li&gt;电信光猫&lt;/li&gt;
 &lt;/ol&gt;
 &lt;blockquote&gt;
-&lt;p&gt;&lt;strong&gt;在台式电脑上&lt;/strong&gt;（这点很重要，保证了整个物理链路的物理带宽为千兆) 使用上海电信官网的测试界面进行测速结果只有1MB左右(具体数值忘了截图了)，距离200Mb/8≈25MB 还有很大差距。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;在台式电脑上&lt;/strong&gt;（这点很重要，保证了整个物理链路的物理带宽为千兆) 使用上海电信官网的测试界面进行测速，结果只有1MB左右，距离200Mb/8≈25MB 还有很大距离。&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;现在初步认定是电信光猫的问题，那么如何解决这个问题呢？&lt;/p&gt;
-&lt;p&gt;方案1： 电信客服投诉，保修？&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;初步可认定是电信光猫的问题，那么如何解决这个问题呢？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;方案1： 电信客服投诉，报修？&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;根据平时经验，网速有时能恢复，工人上门维修的时候不一定能复现。另外通过微信公众号的自检，电信认定为设备正常。 工人最多也就过来重启下，然后测试正常就算完了。 &lt;strong&gt;这显然不能解决问题&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;根据过往经验，网速有时能恢复，工人上门维修不一定能复现。另外通过微信公众号的自检，电信认定为设备正常。 工人上门也就重启下，测试正常也就离开了。 &lt;strong&gt;这显然不能解决问题&lt;/strong&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;方案2： 其它？&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;比如换移动、联通？嗯，这是在搞笑。&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;在电信的测速界面看到一个非常有趣的提醒，大意是说“现在测速结果偏慢，但是要在重启网关之后才能保证测速准确哦”&lt;/p&gt;
-&lt;p&gt;于是萧先生抱着试一试态度，重启了路由器。您别说，还真有效！
+&lt;p&gt;两个方案都不可行。但是在电信的测速界面看到一个非常有趣的提醒，大意是“现在测速结果偏慢，但是要在重启网关之后才能保证测速准确哦”。试着重启了光猫后，还真有效！
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225235959.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;于是，现在问题转变成，如何自动重启光猫&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;如果我们假设重启光猫后网速能回归正常，那问题转变成如何自动重启光猫&lt;/strong&gt;&lt;/p&gt;
 &lt;h2 id=&#34;heading-3&#34;&gt;通过路由器的剩余计算能力闲时自动重启光猫&lt;/h2&gt;
 &lt;h3 id=&#34;heading-4&#34;&gt;如何自动重启光猫&lt;/h3&gt;
-&lt;p&gt;&lt;strong&gt;家里的光猫可以通过web界面重启&lt;/strong&gt;， 从这点出发，我们只需要抓包破解重启通信协议即可达成目标。&lt;/p&gt;
-&lt;p&gt;家里的光猫管理界面如下图所示：
+&lt;p&gt;&lt;strong&gt;家里的光猫可以通过web界面重启&lt;/strong&gt;， 那只需要抓包破解重启通信协议即可达成目标。&lt;/p&gt;
+&lt;p&gt;本文中的光猫管理界面如下图所示：
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225224609.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;通过Chrome自带的HTTP抓包结果如下&lt;/p&gt;
 &lt;p&gt;登录请求&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;&lt;code&gt;HTTP GET http://192.168.1.1/login.cgi?username=useradmin&amp;amp;psd=&amp;lt;登录密码&amp;gt;&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;登录后，你会发现web界面不断地发送post请求和光猫内的服务端进行数据同步&lt;/p&gt;
+&lt;p&gt;登录后可发现web界面不断地发送post请求和光猫内的服务端进行数据和指令同步&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;&lt;code&gt;HTTP POST http://192.168.1.1/gatewayManage.cmd?timeStamp=1577285343462&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225225409.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;其中POST的body以表单形式发送，如：&lt;code&gt;jsonCfg=%7B%22RPCMethod%22%3A%22Post1%22%2C+&#39;ID&#39;%3A&#39;123&#39;%2C+%22Parameter%22%3A&#39;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ%3D%3D&#39;%7D&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;URL decoded 之后为：&lt;code&gt;jsonCfg={&amp;quot;RPCMethod&amp;quot;:&amp;quot;Post1&amp;quot;, &#39;ID&#39;:&#39;123&#39;, &amp;quot;Parameter&amp;quot;:&#39;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ==&#39;}&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;通过观察多个请求，可以发现请求jsonCfg中的字段 &lt;code&gt;RPCMethod&lt;/code&gt;和&lt;code&gt;ID&lt;/code&gt;都是固定不变的， 而&lt;code&gt;Parameter&lt;/code&gt;是变化的。通过观察多个&lt;code&gt;Parameter&lt;/code&gt;实例，可以注意到其是Base64编码的（因为有以&lt;code&gt;=&lt;/code&gt;结尾的，&lt;code&gt;=&lt;/code&gt;是base64编码的padding）。&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ==&lt;/code&gt; base64 decoded 之后为 &lt;code&gt;{&amp;quot;CmdType&amp;quot;:&amp;quot;HG_COMMAND_REBOOT&amp;quot;}&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;这正是我们想要的请求&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;URL中还有一个query参数为&lt;code&gt;timeStamp&lt;/code&gt;, 这个很直观的知道是时间戳，通过实验可知这个参数用来拒绝过期的请求（多长时间被视作过期没有测试）&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;按照常识，HTTP header中应该有登录之后的session id，然而并木有！！！&lt;/strong&gt;
+&lt;p&gt;通过观察多个请求，可以发现请求jsonCfg中的字段 &lt;code&gt;RPCMethod&lt;/code&gt;和&lt;code&gt;ID&lt;/code&gt;都是固定不变的， 而&lt;code&gt;Parameter&lt;/code&gt;是变化的。&lt;code&gt;Parameter&lt;/code&gt;实例是Base64编码的（因为有以&lt;code&gt;=&lt;/code&gt;结尾的，&lt;code&gt;=&lt;/code&gt;是base64编码的padding）。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ==&lt;/code&gt; base64 decoded 之后为 &lt;code&gt;{&amp;quot;CmdType&amp;quot;:&amp;quot;HG_COMMAND_REBOOT&amp;quot;}&lt;/code&gt;&lt;strong&gt;从字面意思猜测，这就是重启路由器请求&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;URL中还有一个query参数为&lt;code&gt;timeStamp&lt;/code&gt;, 字面意思为时间戳。通过实验可知这个参数用来拒绝过期的请求（具体多长时间被视作过期没有详细测试）&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;按照常识，HTTP header中应该有登录之后的session id，可是没有。&lt;/strong&gt; 这种简单的不需要多用户的管理系统，没有session也很正常，可以通过登录请求记录合法IP来保护敏感资源。
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225231258.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;按照这个尿性，那header中的 &lt;code&gt;Referer&lt;/code&gt; 肯定也不会验证了。于是萧先生大胆猜测一个重启指令只需要发送如下简单的post请求&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;于是我们可以构造如下命令来重启路由器：&lt;/strong&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
 &lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 注意更新timeStamp&lt;/span&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 注意更新timeStamp&lt;/span&gt;
 curl &lt;span class=&#34;s1&#34;&gt;&amp;#39;http://192.168.1.1/gatewayManage.cmd?timeStamp=1577286579429&amp;#39;&lt;/span&gt;  --data &lt;span class=&#34;s1&#34;&gt;$&amp;#39;jsonCfg=%7B%22RPCMethod%22%3A%22Post1%22%2C+\&amp;#39;ID\&amp;#39;%3A\&amp;#39;123\&amp;#39;%2C+%22Parameter%22%3A\&amp;#39;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ%3D%3D\&amp;#39;%7D&amp;#39;&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;执行后打印的http body如下，其中 &lt;code&gt;return_Parameter&lt;/code&gt; base64解码后为&lt;code&gt;{ &amp;quot;CmdType&amp;quot;: &amp;quot;HG_COMMAND_REBOOT&amp;quot;, &amp;quot;SequenceId&amp;quot;: null, &amp;quot;Status&amp;quot;: &amp;quot;0&amp;quot; }&lt;/code&gt;。 0 也就是 OK 咯？&lt;/p&gt;
+&lt;/div&gt;&lt;p&gt;执行后打印的http body如下，&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
@@ -112,9 +110,135 @@ curl &lt;span class=&#34;s1&#34;&gt;&amp;#39;http://192.168.1.1/gatewayManage.cm
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;{ &amp;#34;ID&amp;#34;: 123, &amp;#34;_Source&amp;#34;: 0, &amp;#34;Result&amp;#34;: 0, &amp;#34;return_Parameter&amp;#34;: &amp;#34;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;#34; }
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;执行后，发现光猫的管理界面打不开了（可能是在重启），过一会等等再次登录之后，通过查看光猫的运行状态（运行时间），证实了刚才的重启是有效的！
+&lt;/div&gt;&lt;p&gt;其中 &lt;code&gt;return_Parameter&lt;/code&gt; base64解码后为&lt;code&gt;{ &amp;quot;CmdType&amp;quot;: &amp;quot;HG_COMMAND_REBOOT&amp;quot;, &amp;quot;SequenceId&amp;quot;: null, &amp;quot;Status&amp;quot;: &amp;quot;0&amp;quot; }&lt;/code&gt;。 根据经验，一般0表示执行成功。&lt;/p&gt;
+&lt;p&gt;执行后光猫的管理界面便不能打开，一小段时间之后才能再次反问。通过查看光猫的运行状态（运行时间），证实了刚才的重启是有效的！
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191226002901.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;todo&#34;&gt;如何通过路由器自动定时重启光猫？（TODO）&lt;/h3&gt;</description>
+&lt;h3 id=&#34;heading-5&#34;&gt;如何通过路由器自动定时重启光猫？&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;路由器&lt;/strong&gt;（注意不是光猫）可以ssh登录, 有一个精简的linux系统，有一整套的busybox。路由器也刷了梅林固件，当然也可以安装其他软件，甚至Python。解决方案多种多样，比如下面的shell 脚本。&lt;a href=&#34;https://www.shellscript.sh/&#34;&gt;shell 脚本教程&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;cp&#34;&gt;#!/bin/sh
+&lt;/span&gt;&lt;span class=&#34;cp&#34;&gt;&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;while&lt;/span&gt; : &lt;span class=&#34;c1&#34;&gt;# 死循环&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;do&lt;/span&gt;
+	&lt;span class=&#34;nb&#34;&gt;echo&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;Date: &lt;/span&gt;&lt;span class=&#34;k&#34;&gt;$(&lt;/span&gt;date&lt;span class=&#34;k&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;
+	&lt;span class=&#34;nv&#34;&gt;hour&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;$(&lt;/span&gt;date +%H&lt;span class=&#34;k&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;[&lt;/span&gt; &lt;span class=&#34;nv&#34;&gt;$hour&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;4&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;then&lt;/span&gt;
+		&lt;span class=&#34;nb&#34;&gt;echo&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;reboot modem&amp;#34;&lt;/span&gt;
+		&lt;span class=&#34;c1&#34;&gt;# login&lt;/span&gt;
+		curl &lt;span class=&#34;s2&#34;&gt;&amp;#34;http://192.168.1.1/login.cgi?username=useradmin&amp;amp;psd=密码&amp;#34;&lt;/span&gt;
+		&lt;span class=&#34;c1&#34;&gt;# reboot&lt;/span&gt;
+		curl &lt;span class=&#34;s1&#34;&gt;&amp;#39;http://192.168.1.1/gatewayManage.cmd?timeStamp=2555758215000&amp;#39;&lt;/span&gt;  --data &lt;span class=&#34;s1&#34;&gt;$&amp;#39;jsonCfg=%7B%22RPCMethod%22%3A%22Post1%22%2C+\&amp;#39;ID\&amp;#39;%3A\&amp;#39;123\&amp;#39;%2C+%22Parameter%22%3A\&amp;#39;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ%3D%3D\&amp;#39;%7D&amp;#39;&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;fi&lt;/span&gt;
+	sleep &lt;span class=&#34;m&#34;&gt;3600&lt;/span&gt;  &lt;span class=&#34;c1&#34;&gt;# 1小时唤醒一次&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;done&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;说明：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;时间戳2555758215000 是2050年的一个时间。实验可知时间戳判断逻辑过于简单：当前时间-timestamp &amp;gt; 阈值 就认为过期。我们传一个比当前时间更后的时间是一种取巧的hack方式，当然也可以通过 &lt;code&gt;date +%s&lt;/code&gt;来获取时间，但是没有必要。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;脚本每小时唤醒一次，在凌晨4点触发重启。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;脚本需要放到一个&lt;strong&gt;非临时存储&lt;/strong&gt;，注意不要保存在路由器的tmpfs&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;admin@RT-AC68P:/tmp/home/root# ls -l /root
+lrwxrwxrwx    1 admin    root            13 Sep 21 14:13 /root -&amp;gt; tmp/home/root
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用 &lt;code&gt;nohup&lt;/code&gt; 来保证脚本持续运行。 当然也可以研究下你的路由器支持哪种开机自动运行的能力(比如&lt;code&gt;/etc/init.d&lt;/code&gt;)&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;当然更方便的是利用梅林固件的服务脚本和cru定时任务管理器。&lt;/p&gt;
+&lt;h4 id=&#34;cru&#34;&gt;使用梅林固件的定时任务软件&lt;code&gt;cru&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;首先我们需要打开jffs分区。这是个非临时存储，换言之就是在路由器重启之后数据不会丢失。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191227215121.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;将脚本脚本放到指定目录&lt;code&gt;/jffs/scripts/&lt;/code&gt;, 并且添加可执行权限。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;cp&#34;&gt;#!/bin/sh
+&lt;/span&gt;&lt;span class=&#34;cp&#34;&gt;&lt;/span&gt;
+&lt;span class=&#34;nb&#34;&gt;echo&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;$(&lt;/span&gt;date&lt;span class=&#34;k&#34;&gt;)&lt;/span&gt; &amp;gt; /tmp/modem_reboot.log
+curl &lt;span class=&#34;s2&#34;&gt;&amp;#34;http://192.168.1.1/login.cgi?username=useradmin&amp;amp;psd=密码&amp;#34;&lt;/span&gt;
+curl &lt;span class=&#34;s1&#34;&gt;&amp;#39;http://192.168.1.1/gatewayManage.cmd?timeStamp=2555758215000&amp;#39;&lt;/span&gt;  --data &lt;span class=&#34;s1&#34;&gt;$&amp;#39;jsonCfg=%7B%22RPCMethod%22%3A%22Post1%22%2C+\&amp;#39;ID\&amp;#39;%3A\&amp;#39;123\&amp;#39;%2C+%22Parameter%22%3A\&amp;#39;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ%3D%3D\&amp;#39;%7D&amp;#39;&lt;/span&gt; &amp;gt;&amp;gt; /tmp/modem_reboot.log
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;对脚本进行了进一步的完善，其中3行，将&lt;strong&gt;最近一次&lt;/strong&gt;执行时间写进文件日志文件&lt;code&gt;/tmp/modem_reboot.log&lt;/code&gt;, 最后一行将重启结果也写进了日志。 &lt;strong&gt;程序猿要以数据说话，不能靠感觉&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;脚本可以选择不同的启动时间，由于是重启光猫，可以选择了&lt;a href=&#34;https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts&#34;&gt;post-mount，即jffs刚被挂载好便触发
+&lt;/a&gt;。 将下面的代码添加至&lt;code&gt;/jffs/scripts/post-mount&lt;/code&gt;文件中&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# automatically reboot my model to 04:00 am every day&lt;/span&gt;
+cru a rebootmodem &lt;span class=&#34;s2&#34;&gt;&amp;#34;0 4 * * * /jffs/scripts/auto_reboot_modem.sh&amp;#34;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;为了验证&lt;code&gt;post-mount&lt;/code&gt; 是否会触发，可以重启&lt;strong&gt;路由器&lt;/strong&gt;（not 光猫）， 然后&lt;code&gt;cru l&lt;/code&gt;查看任务&#39;rebootmodem&amp;rsquo; 是否存在。如果你能看到如下内容，说明我们的脚本配置成功，cron job已经被添加。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;admin@RT-AC68P:/tmp/home/root# cru l
+&lt;span class=&#34;m&#34;&gt;0&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;4&lt;/span&gt; * * * /jffs/scripts/auto_reboot_modem.sh &lt;span class=&#34;c1&#34;&gt;#rebootmodem#&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;最后附上次日清晨的日志文件内容，证明整个方案是可靠的&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;admin@RT-AC68P:/tmp/home/root# cat /tmp/modem_reboot.log
+Sat Dec 28 04:00:01 GMT 2019
+{ &amp;#34;ID&amp;#34;: 123, &amp;#34;_Source&amp;#34;: 0, &amp;#34;Result&amp;#34;: 0, &amp;#34;return_Parameter&amp;#34;: &amp;#34;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;#34; }
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191228102807.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</description>
       
     </item>
     

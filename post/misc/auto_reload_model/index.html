@@ -64,12 +64,12 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://auntlei.com/post/misc/auto_reload_model/" />
 <meta property="article:published_time" content="2019-12-25T22:47:46+08:00" />
-<meta property="article:modified_time" content="2019-12-25T22:47:46+08:00" />
+<meta property="article:modified_time" content="2019-12-27T22:47:46+08:00" />
 <meta itemprop="name" content="自动重启电信光猫">
 <meta itemprop="description" content="">
 <meta itemprop="datePublished" content="2019-12-25T22:47:46&#43;08:00" />
-<meta itemprop="dateModified" content="2019-12-25T22:47:46&#43;08:00" />
-<meta itemprop="wordCount" content="1467">
+<meta itemprop="dateModified" content="2019-12-27T22:47:46&#43;08:00" />
+<meta itemprop="wordCount" content="2534">
 
 
 
@@ -331,7 +331,7 @@
     <li><a href="#heading-3">通过路由器的剩余计算能力闲时自动重启光猫</a>
       <ul>
         <li><a href="#heading-4">如何自动重启光猫</a></li>
-        <li><a href="#todo">如何通过路由器自动定时重启光猫？（TODO）</a></li>
+        <li><a href="#heading-5">如何通过路由器自动定时重启光猫？</a></li>
       </ul>
     </li>
   </ul>
@@ -344,70 +344,68 @@
       <h2 id="heading">起因</h2>
 <p>家里的WiFi总是过一点时间就会很卡，让人不爽！</p>
 <h3 id="heading-1">网络布局</h3>
-<p>家里的网络布局和绝大多素普通家庭类似， 一个<strong>200M的电信宽带</strong>接上一个路由器
+<p>家里的网络布局和大多数普通家庭类似， 一个<strong>200M的电信宽带</strong>接上一个路由器
 <img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225233420.png" alt=""></p>
 <h3 id="heading-2">排障流程</h3>
-<p>从上文的拓扑图看，设备接入互联网慢，可能是两个组件有问题：电信光猫或者是我们的路由器，当然也有可能两者同时故障。</p>
+<p>从拓扑图看，设备接入互联网慢可能是两个组件有问题：电信光猫或者路由器。</p>
 <ol>
 <li>路由器问题？</li>
 </ol>
 <blockquote>
-<p>通过对比台式电脑和移动设备之间的网速，发现其并不存在明显差距——都是龟速，而路由器是新买不久的支持5G频率的千兆路由器，先大胆<strong>排除是路由器故障</strong>。</p>
+<p>对比台式电脑和移动设备之间的网速，并没有发现明显差距——都是龟速。加之路由器是新买不久的支持5G频率的千兆路由器，先大胆<strong>假设不是路由器故障</strong>。</p>
 </blockquote>
 <ol start="2">
 <li>电信光猫</li>
 </ol>
 <blockquote>
-<p><strong>在台式电脑上</strong>（这点很重要，保证了整个物理链路的物理带宽为千兆) 使用上海电信官网的测试界面进行测速结果只有1MB左右(具体数值忘了截图了)，距离200Mb/8≈25MB 还有很大差距。</p>
+<p><strong>在台式电脑上</strong>（这点很重要，保证了整个物理链路的物理带宽为千兆) 使用上海电信官网的测试界面进行测速，结果只有1MB左右，距离200Mb/8≈25MB 还有很大距离。</p>
 </blockquote>
-<p>现在初步认定是电信光猫的问题，那么如何解决这个问题呢？</p>
-<p>方案1： 电信客服投诉，保修？</p>
+<p><strong>初步可认定是电信光猫的问题，那么如何解决这个问题呢？</strong></p>
+<p>方案1： 电信客服投诉，报修？</p>
 <blockquote>
-<p>根据平时经验，网速有时能恢复，工人上门维修的时候不一定能复现。另外通过微信公众号的自检，电信认定为设备正常。 工人最多也就过来重启下，然后测试正常就算完了。 <strong>这显然不能解决问题</strong></p>
+<p>根据过往经验，网速有时能恢复，工人上门维修不一定能复现。另外通过微信公众号的自检，电信认定为设备正常。 工人上门也就重启下，测试正常也就离开了。 <strong>这显然不能解决问题</strong></p>
 </blockquote>
 <p>方案2： 其它？</p>
 <blockquote>
 <p>比如换移动、联通？嗯，这是在搞笑。</p>
 </blockquote>
-<p>在电信的测速界面看到一个非常有趣的提醒，大意是说“现在测速结果偏慢，但是要在重启网关之后才能保证测速准确哦”</p>
-<p>于是萧先生抱着试一试态度，重启了路由器。您别说，还真有效！
+<p>两个方案都不可行。但是在电信的测速界面看到一个非常有趣的提醒，大意是“现在测速结果偏慢，但是要在重启网关之后才能保证测速准确哦”。试着重启了光猫后，还真有效！
 <img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225235959.png" alt=""></p>
-<p><strong>于是，现在问题转变成，如何自动重启光猫</strong></p>
+<p><strong>如果我们假设重启光猫后网速能回归正常，那问题转变成如何自动重启光猫</strong></p>
 <h2 id="heading-3">通过路由器的剩余计算能力闲时自动重启光猫</h2>
 <h3 id="heading-4">如何自动重启光猫</h3>
-<p><strong>家里的光猫可以通过web界面重启</strong>， 从这点出发，我们只需要抓包破解重启通信协议即可达成目标。</p>
-<p>家里的光猫管理界面如下图所示：
+<p><strong>家里的光猫可以通过web界面重启</strong>， 那只需要抓包破解重启通信协议即可达成目标。</p>
+<p>本文中的光猫管理界面如下图所示：
 <img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225224609.png" alt=""></p>
 <p>通过Chrome自带的HTTP抓包结果如下</p>
 <p>登录请求</p>
 <blockquote>
 <p><code>HTTP GET http://192.168.1.1/login.cgi?username=useradmin&amp;psd=&lt;登录密码&gt;</code></p>
 </blockquote>
-<p>登录后，你会发现web界面不断地发送post请求和光猫内的服务端进行数据同步</p>
+<p>登录后可发现web界面不断地发送post请求和光猫内的服务端进行数据和指令同步</p>
 <blockquote>
 <p><code>HTTP POST http://192.168.1.1/gatewayManage.cmd?timeStamp=1577285343462</code></p>
 </blockquote>
 <p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225225409.png" alt=""></p>
 <p>其中POST的body以表单形式发送，如：<code>jsonCfg=%7B%22RPCMethod%22%3A%22Post1%22%2C+'ID'%3A'123'%2C+%22Parameter%22%3A'eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ%3D%3D'%7D</code></p>
 <p>URL decoded 之后为：<code>jsonCfg={&quot;RPCMethod&quot;:&quot;Post1&quot;, 'ID':'123', &quot;Parameter&quot;:'eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ=='}</code></p>
-<p>通过观察多个请求，可以发现请求jsonCfg中的字段 <code>RPCMethod</code>和<code>ID</code>都是固定不变的， 而<code>Parameter</code>是变化的。通过观察多个<code>Parameter</code>实例，可以注意到其是Base64编码的（因为有以<code>=</code>结尾的，<code>=</code>是base64编码的padding）。</p>
-<p><code>eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ==</code> base64 decoded 之后为 <code>{&quot;CmdType&quot;:&quot;HG_COMMAND_REBOOT&quot;}</code></p>
-<p><strong>这正是我们想要的请求</strong></p>
-<p>URL中还有一个query参数为<code>timeStamp</code>, 这个很直观的知道是时间戳，通过实验可知这个参数用来拒绝过期的请求（多长时间被视作过期没有测试）</p>
-<p><strong>按照常识，HTTP header中应该有登录之后的session id，然而并木有！！！</strong>
+<p>通过观察多个请求，可以发现请求jsonCfg中的字段 <code>RPCMethod</code>和<code>ID</code>都是固定不变的， 而<code>Parameter</code>是变化的。<code>Parameter</code>实例是Base64编码的（因为有以<code>=</code>结尾的，<code>=</code>是base64编码的padding）。</p>
+<p><code>eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ==</code> base64 decoded 之后为 <code>{&quot;CmdType&quot;:&quot;HG_COMMAND_REBOOT&quot;}</code><strong>从字面意思猜测，这就是重启路由器请求</strong></p>
+<p>URL中还有一个query参数为<code>timeStamp</code>, 字面意思为时间戳。通过实验可知这个参数用来拒绝过期的请求（具体多长时间被视作过期没有详细测试）</p>
+<p><strong>按照常识，HTTP header中应该有登录之后的session id，可是没有。</strong> 这种简单的不需要多用户的管理系统，没有session也很正常，可以通过登录请求记录合法IP来保护敏感资源。
 <img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225231258.png" alt=""></p>
-<p><strong>按照这个尿性，那header中的 <code>Referer</code> 肯定也不会验证了。于是萧先生大胆猜测一个重启指令只需要发送如下简单的post请求</strong></p>
+<p><strong>于是我们可以构造如下命令来重启路由器：</strong></p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># 注意更新timeStamp</span>
+<pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1"># 注意更新timeStamp</span>
 curl <span class="s1">&#39;http://192.168.1.1/gatewayManage.cmd?timeStamp=1577286579429&#39;</span>  --data <span class="s1">$&#39;jsonCfg=%7B%22RPCMethod%22%3A%22Post1%22%2C+\&#39;ID\&#39;%3A\&#39;123\&#39;%2C+%22Parameter%22%3A\&#39;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ%3D%3D\&#39;%7D&#39;</span>
 </code></pre></td></tr></table>
 </div>
-</div><p>执行后打印的http body如下，其中 <code>return_Parameter</code> base64解码后为<code>{ &quot;CmdType&quot;: &quot;HG_COMMAND_REBOOT&quot;, &quot;SequenceId&quot;: null, &quot;Status&quot;: &quot;0&quot; }</code>。 0 也就是 OK 咯？</p>
+</div><p>执行后打印的http body如下，</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
@@ -416,9 +414,135 @@ curl <span class="s1">&#39;http://192.168.1.1/gatewayManage.cmd?timeStamp=157728
 <pre class="chroma"><code class="language-fallback" data-lang="fallback">{ &#34;ID&#34;: 123, &#34;_Source&#34;: 0, &#34;Result&#34;: 0, &#34;return_Parameter&#34;: &#34;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&#34; }
 </code></pre></td></tr></table>
 </div>
-</div><p>执行后，发现光猫的管理界面打不开了（可能是在重启），过一会等等再次登录之后，通过查看光猫的运行状态（运行时间），证实了刚才的重启是有效的！
+</div><p>其中 <code>return_Parameter</code> base64解码后为<code>{ &quot;CmdType&quot;: &quot;HG_COMMAND_REBOOT&quot;, &quot;SequenceId&quot;: null, &quot;Status&quot;: &quot;0&quot; }</code>。 根据经验，一般0表示执行成功。</p>
+<p>执行后光猫的管理界面便不能打开，一小段时间之后才能再次反问。通过查看光猫的运行状态（运行时间），证实了刚才的重启是有效的！
 <img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191226002901.png" alt=""></p>
-<h3 id="todo">如何通过路由器自动定时重启光猫？（TODO）</h3>
+<h3 id="heading-5">如何通过路由器自动定时重启光猫？</h3>
+<p><strong>路由器</strong>（注意不是光猫）可以ssh登录, 有一个精简的linux系统，有一整套的busybox。路由器也刷了梅林固件，当然也可以安装其他软件，甚至Python。解决方案多种多样，比如下面的shell 脚本。<a href="https://www.shellscript.sh/">shell 脚本教程</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell"><span class="cp">#!/bin/sh
+</span><span class="cp"></span>
+<span class="k">while</span> : <span class="c1"># 死循环</span>
+<span class="k">do</span>
+	<span class="nb">echo</span> <span class="s2">&#34;</span><span class="s2">Date: </span><span class="k">$(</span>date<span class="k">)</span><span class="s2">&#34;</span>
+	<span class="nv">hour</span><span class="o">=</span><span class="k">$(</span>date +%H<span class="k">)</span>
+	<span class="k">if</span> <span class="o">[</span> <span class="nv">$hour</span> <span class="o">=</span> <span class="m">4</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+		<span class="nb">echo</span> <span class="s2">&#34;reboot modem&#34;</span>
+		<span class="c1"># login</span>
+		curl <span class="s2">&#34;http://192.168.1.1/login.cgi?username=useradmin&amp;psd=密码&#34;</span>
+		<span class="c1"># reboot</span>
+		curl <span class="s1">&#39;http://192.168.1.1/gatewayManage.cmd?timeStamp=2555758215000&#39;</span>  --data <span class="s1">$&#39;jsonCfg=%7B%22RPCMethod%22%3A%22Post1%22%2C+\&#39;ID\&#39;%3A\&#39;123\&#39;%2C+%22Parameter%22%3A\&#39;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ%3D%3D\&#39;%7D&#39;</span>
+	<span class="k">fi</span>
+	sleep <span class="m">3600</span>  <span class="c1"># 1小时唤醒一次</span>
+<span class="k">done</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>说明：</p>
+<ol>
+<li>
+<p>时间戳2555758215000 是2050年的一个时间。实验可知时间戳判断逻辑过于简单：当前时间-timestamp &gt; 阈值 就认为过期。我们传一个比当前时间更后的时间是一种取巧的hack方式，当然也可以通过 <code>date +%s</code>来获取时间，但是没有必要。</p>
+</li>
+<li>
+<p>脚本每小时唤醒一次，在凌晨4点触发重启。</p>
+</li>
+<li>
+<p>脚本需要放到一个<strong>非临时存储</strong>，注意不要保存在路由器的tmpfs</p>
+<blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">admin@RT-AC68P:/tmp/home/root# ls -l /root
+lrwxrwxrwx    1 admin    root            13 Sep 21 14:13 /root -&gt; tmp/home/root
+</code></pre></td></tr></table>
+</div>
+</div></blockquote>
+</li>
+<li>
+<p>使用 <code>nohup</code> 来保证脚本持续运行。 当然也可以研究下你的路由器支持哪种开机自动运行的能力(比如<code>/etc/init.d</code>)</p>
+</li>
+</ol>
+<p>当然更方便的是利用梅林固件的服务脚本和cru定时任务管理器。</p>
+<h4 id="cru">使用梅林固件的定时任务软件<code>cru</code></h4>
+<p>首先我们需要打开jffs分区。这是个非临时存储，换言之就是在路由器重启之后数据不会丢失。</p>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191227215121.png" alt=""></p>
+<p>将脚本脚本放到指定目录<code>/jffs/scripts/</code>, 并且添加可执行权限。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell"><span class="cp">#!/bin/sh
+</span><span class="cp"></span>
+<span class="nb">echo</span> <span class="k">$(</span>date<span class="k">)</span> &gt; /tmp/modem_reboot.log
+curl <span class="s2">&#34;http://192.168.1.1/login.cgi?username=useradmin&amp;psd=密码&#34;</span>
+curl <span class="s1">&#39;http://192.168.1.1/gatewayManage.cmd?timeStamp=2555758215000&#39;</span>  --data <span class="s1">$&#39;jsonCfg=%7B%22RPCMethod%22%3A%22Post1%22%2C+\&#39;ID\&#39;%3A\&#39;123\&#39;%2C+%22Parameter%22%3A\&#39;eyJDbWRUeXBlIjoiSEdfQ09NTUFORF9SRUJPT1QifQ%3D%3D\&#39;%7D&#39;</span> &gt;&gt; /tmp/modem_reboot.log
+</code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>对脚本进行了进一步的完善，其中3行，将<strong>最近一次</strong>执行时间写进文件日志文件<code>/tmp/modem_reboot.log</code>, 最后一行将重启结果也写进了日志。 <strong>程序猿要以数据说话，不能靠感觉</strong></p>
+</blockquote>
+<p>脚本可以选择不同的启动时间，由于是重启光猫，可以选择了<a href="https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts">post-mount，即jffs刚被挂载好便触发
+</a>。 将下面的代码添加至<code>/jffs/scripts/post-mount</code>文件中</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1"># automatically reboot my model to 04:00 am every day</span>
+cru a rebootmodem <span class="s2">&#34;0 4 * * * /jffs/scripts/auto_reboot_modem.sh&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>为了验证<code>post-mount</code> 是否会触发，可以重启<strong>路由器</strong>（not 光猫）， 然后<code>cru l</code>查看任务'rebootmodem&rsquo; 是否存在。如果你能看到如下内容，说明我们的脚本配置成功，cron job已经被添加。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell">admin@RT-AC68P:/tmp/home/root# cru l
+<span class="m">0</span> <span class="m">4</span> * * * /jffs/scripts/auto_reboot_modem.sh <span class="c1">#rebootmodem#</span>
+</code></pre></td></tr></table>
+</div>
+</div><p><strong>最后附上次日清晨的日志文件内容，证明整个方案是可靠的</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">admin@RT-AC68P:/tmp/home/root# cat /tmp/modem_reboot.log
+Sat Dec 28 04:00:01 GMT 2019
+{ &#34;ID&#34;: 123, &#34;_Source&#34;: 0, &#34;Result&#34;: 0, &#34;return_Parameter&#34;: &#34;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&#34; }
+</code></pre></td></tr></table>
+</div>
+</div><p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191228102807.png" alt=""></p>
     </div>
 
     
@@ -431,7 +555,7 @@ curl <span class="s1">&#39;http://192.168.1.1/gatewayManage.cmd?timeStamp=157728
   <p class="copyright-item">
     <span class="item-title">上次更新</span>
     <span class="item-content">
-      2019-12-25
+      2019-12-27
       
     </span>
   </p>
