@@ -5,10 +5,28 @@
     <link>http://auntlei.com/post/</link>
     <description>Recent content in Posts on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 25 Dec 2019 22:47:46 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 12 Jan 2020 17:04:39 +0800</lastBuildDate>
     
 	<atom:link href="http://auntlei.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>活出生命的意义</title>
+      <link>http://auntlei.com/post/reading/meaning_of_life/</link>
+      <pubDate>Sun, 12 Jan 2020 17:04:39 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/meaning_of_life/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>深入理解facebook haystack</title>
+      <link>http://auntlei.com/post/paper/haystack/</link>
+      <pubDate>Sun, 29 Dec 2019 21:05:45 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/paper/haystack/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>自动重启电信光猫</title>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>归档 - 萧七海的博客</title>
+  <title>深入理解facebook haystack - 萧七海的博客</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,8 +23,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="萧七海" />
-  <meta name="description" content="记录和分享" />
-  <meta name="keywords" content="Hugo, theme, jane, 萧七海, 博客, 技术, IT, 分布式, 存储" />
+  <meta name="description" content="" />
+<meta name="keywords" content="facebook, haystack" />
+
 
 
 
@@ -34,8 +35,8 @@
 <meta name="generator" content="Hugo 0.61.0" />
 
 
-<link rel="canonical" href="http://auntlei.com/post/" />
-<link href="/post/index.xml" rel="alternate" type="application/rss+xml" title="萧七海的博客" />
+<link rel="canonical" href="http://auntlei.com/post/paper/haystack/" />
+
 
 
 
@@ -58,15 +59,23 @@
 
 
 
-<meta property="og:title" content="Posts" />
-<meta property="og:description" content="记录和分享" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="http://auntlei.com/post/" />
-<meta property="og:updated_time" content="2020-01-12T17:04:39+08:00" />
-<meta itemprop="name" content="Posts">
-<meta itemprop="description" content="记录和分享"><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Posts"/>
-<meta name="twitter:description" content="记录和分享"/>
+<meta property="og:title" content="深入理解facebook haystack" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://auntlei.com/post/paper/haystack/" />
+<meta property="article:published_time" content="2019-12-29T21:05:45+08:00" />
+<meta property="article:modified_time" content="2019-12-29T21:05:45+08:00" />
+<meta itemprop="name" content="深入理解facebook haystack">
+<meta itemprop="description" content="">
+<meta itemprop="datePublished" content="2019-12-29T21:05:45&#43;08:00" />
+<meta itemprop="dateModified" content="2019-12-29T21:05:45&#43;08:00" />
+<meta itemprop="wordCount" content="947">
+
+
+
+<meta itemprop="keywords" content="存储,分布式,经典论文," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="深入理解facebook haystack"/>
+<meta name="twitter:description" content=""/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -225,7 +234,7 @@
 
       </li>
     
-        <li class="menu-item active">
+        <li class="menu-item">
         
           
           
@@ -283,92 +292,218 @@
     <main id="main" class="main bg-llight">
       <div class="content-wrapper">
         <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">深入理解facebook haystack</h1>
+      
+      <div class="post-meta">
+        <time datetime="2019-12-29" class="post-time">
+          2019-12-29
+        </time>
+        <div class="post-category">
+            <a href="http://auntlei.com/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/"> 分布式存储 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#heading">基础知识回顾</a>
+      <ul>
+        <li><a href="#heading-1">机械磁盘平均寻址时间不可忽略</a></li>
+        <li><a href="#inode">文件系统与inode</a></li>
+      </ul>
+    </li>
+    <li><a href="#haystack">haystack</a>
+      <ul>
+        <li><a href="#heading-2">核心思想</a></li>
+        <li><a href="#heading-3">架构</a></li>
+      </ul>
+    </li>
+    <li><a href="#10haystack">过去10年了，haystack还适用吗？</a></li>
+    <li><a href="#heading-4">参考文献</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>facebook 09年发表的存储系统haystack，主要是优化海量小文件的访问效率，其核心思想是减少定位文件inode所需要的磁盘操作。通过回顾文件访问的相关的基础知识，我们也就能理解haystack的动机，以及之所以能提升性能的根本原因。</p>
+<h2 id="heading">基础知识回顾</h2>
+<p>在介绍linux文件系统之前，有必要简单回顾一下HDD。虽然目前SSD的成本越来越低，容量也越来越大，但是现在HDD在企业存储中，仍占据主要地位。SSD相对HDD最显著的提升是随机访问的性能的质变，但是对于上层文件系统而言，对下层块存储的使用方式没有改变。</p>
+<h3 id="heading-1">机械磁盘平均寻址时间不可忽略</h3>
+<p>作为软件工程师，我们可以选择性地忽略磁盘的一些细节（比如远近圆心扇区存储介质密度差异）而只关注影响应用开发的抽象逻辑。如<a href="">下图</a>所示，机械磁盘由一组“共进退”的机械臂和若干双面的碟片组成。</p>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191229232729.png" alt=""></p>
+<p>更为简化地，我们实际只需要关注如下图中概念。</p>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191229235404.png" alt=""></p>
+<blockquote>
+<p>特意画出机械臂是为了让读者能更深刻地意识到移动是缓慢的。</p>
+</blockquote>
+<p>扇区（Sector），磁盘I/O的最小单位，驱动程序对磁盘的读写操作都是读写一整个扇区，驱动程序能保证对整个扇区操作的原子性。过去512Byte的扇区比较常见，但是现在4K大小的扇区逐渐成为主流（4k也是常规linux一个页的大小）。而一条磁道（track）上有许多扇区。</p>
+<p>因此影响磁盘读写速度的主要有两个因素：</p>
+<ol>
+<li>寻道时间，移动机械臂使磁头位于对应磁道之上的时间。</li>
+<li>寻址时间，通过转到碟片使得磁头位于对应扇区上的时间。</li>
+</ol>
+<p>可以从下表中大致知道HDD的性能与其它存储介质的差距。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">Latency Comparison Numbers
+--------------------------
+L1 cache reference                           0.5 ns
+L2 cache reference                           7   ns                      14x L1 cache
+Main memory reference                      100   ns                      20x L2 cache, 200x L1 cache
+Send 1 KB bytes over 1 Gbps network     10,000   ns       10 us
+Read 4 KB randomly from SSD*           150,000   ns      150 us          ~1GB/sec SSD
+Read 1 MB sequentially from memory     250,000   ns      250 us
+Round trip within same datacenter      500,000   ns      500 us
+Read 1 MB sequentially from SSD*     1,000,000   ns    1,000 us    1 ms  ~1GB/sec SSD, 4X memory
+Disk seek                           10,000,000   ns   10,000 us   10 ms  20x datacenter roundtrip
+Read 1 MB sequentially from 1 Gbps  10,000,000   ns   10,000 us   10 ms  40x memory, 10X SSD
+Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x memory, 30X SSD
+Send packet CA-&gt;Netherlands-&gt;CA    150,000,000   ns  150,000 us  150 ms
+
+Notes
+-----
+1 ns = 10^-9 seconds
+1 us = 10^-6 seconds = 1,000 ns
+1 ms = 10^-3 seconds = 1,000 us = 1,000,000 ns
+</code></pre></td></tr></table>
+</div>
+</div><p>寻址（含寻道）时间10ms，而连续读取10MB（以512B算，20个扇区）的数据却只需要30ms。<strong>最重要的，作为软件开发者要意识到机械磁盘的平均寻道时间是不可忽略的</strong></p>
+<h3 id="inode">文件系统与inode</h3>
+<h2 id="haystack">haystack</h2>
+<h3 id="heading-2">核心思想</h3>
+<h3 id="heading-3">架构</h3>
+<h2 id="10haystack">过去10年了，haystack还适用吗？</h2>
+<h2 id="heading-4">参考文献</h2>
+<p><a href="https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf">haystack</a></p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">萧七海</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+      2019-12-29
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://auntlei.com/tags/%E5%AD%98%E5%82%A8/">存储</a>
+          <a href="http://auntlei.com/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+          <a href="http://auntlei.com/tags/%E7%BB%8F%E5%85%B8%E8%AE%BA%E6%96%87/">经典论文</a>
           
-<section id="archive" class="archive">
-    <div class="archive-title">
-      <span class="archive-post-counter">
-          共计 4 篇文章
-      </span>
-    </div>
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/reading/meaning_of_life/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">活出生命的意义</span>
+            <span class="prev-text nav-mobile">上一篇</span>
+          </a>
+        
+          <a class="next" href="/post/misc/auto_reload_model/">
+            <span class="next-text nav-default">自动重启电信光猫</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
     
-      <div class="collection-title">
-        <h2 class="archive-year">2020</h2>
-      </div>
-
-    <div class="archive-post">
-      <time datetime="2020-01-12" class="archive-post-time">
-        2020-01-12
-      </time>
-      <span class="archive-post-title">
-        <a href="/post/reading/meaning_of_life/" class="archive-post-link">
-          活出生命的意义
-        </a>
-      </span>
-    </div>
-    
-      <div class="collection-title">
-        <h2 class="archive-year">2019</h2>
-      </div>
-
-    <div class="archive-post">
-      <time datetime="2019-12-29" class="archive-post-time">
-        2019-12-29
-      </time>
-      <span class="archive-post-title">
-        <a href="/post/paper/haystack/" class="archive-post-link">
-          深入理解facebook haystack
-        </a>
-      </span>
-    </div>
-    
-
-    <div class="archive-post">
-      <time datetime="2019-12-25" class="archive-post-time">
-        2019-12-25
-      </time>
-      <span class="archive-post-title">
-        <a href="/post/misc/auto_reload_model/" class="archive-post-link">
-          自动重启电信光猫
-        </a>
-      </span>
-    </div>
-    
-
-    <div class="archive-post">
-      <time datetime="2019-12-20" class="archive-post-time">
-        2019-12-20
-      </time>
-      <span class="archive-post-title">
-        <a href="/post/net/udp/" class="archive-post-link">
-          golang UDP 服务端实现
-        </a>
-      </span>
-    </div></section>
-
-
-
-
-
 
   
-  
-  
-
-  
-  
-
-  
-  
-
-  
-  
-
-  
-  
-
-
-
-
 
         </div>
       </div>
