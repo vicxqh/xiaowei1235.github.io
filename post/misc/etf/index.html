@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>深入理解facebook haystack - 萧七海的博客</title>
+  <title>我的基金定投计划 - 萧七海的博客</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -24,8 +24,8 @@
 
 <meta name="author" content="萧七海" />
   <meta name="description" content="" />
-<meta name="keywords" content="facebook, haystack" />
 
+  <meta name="keywords" content="Hugo, theme, jane, 萧七海, 博客, 技术, IT, 分布式, 存储" />
 
 
 
@@ -35,7 +35,7 @@
 <meta name="generator" content="Hugo 0.61.0" />
 
 
-<link rel="canonical" href="http://auntlei.com/post/paper/haystack/" />
+<link rel="canonical" href="http://auntlei.com/post/misc/etf/" />
 
 
 
@@ -59,22 +59,22 @@
 
 
 
-<meta property="og:title" content="深入理解facebook haystack" />
+<meta property="og:title" content="我的基金定投计划" />
 <meta property="og:description" content="" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://auntlei.com/post/paper/haystack/" />
-<meta property="article:published_time" content="2019-12-29T21:05:45+08:00" />
-<meta property="article:modified_time" content="2019-12-29T21:05:45+08:00" />
-<meta itemprop="name" content="深入理解facebook haystack">
+<meta property="og:url" content="http://auntlei.com/post/misc/etf/" />
+<meta property="article:published_time" content="2020-01-20T07:12:29+08:00" />
+<meta property="article:modified_time" content="2020-01-20T07:12:29+08:00" />
+<meta itemprop="name" content="我的基金定投计划">
 <meta itemprop="description" content="">
-<meta itemprop="datePublished" content="2019-12-29T21:05:45&#43;08:00" />
-<meta itemprop="dateModified" content="2019-12-29T21:05:45&#43;08:00" />
-<meta itemprop="wordCount" content="947">
+<meta itemprop="datePublished" content="2020-01-20T07:12:29&#43;08:00" />
+<meta itemprop="dateModified" content="2020-01-20T07:12:29&#43;08:00" />
+<meta itemprop="wordCount" content="2007">
 
 
 
-<meta itemprop="keywords" content="存储,分布式,经典论文," /><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="深入理解facebook haystack"/>
+<meta itemprop="keywords" content="股市," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="我的基金定投计划"/>
 <meta name="twitter:description" content=""/>
 
 <!--[if lte IE 9]>
@@ -295,14 +295,14 @@
           <article class="post bg-white">
     
     <header class="post-header">
-      <h1 class="post-title">深入理解facebook haystack</h1>
+      <h1 class="post-title">我的基金定投计划</h1>
       
       <div class="post-meta">
-        <time datetime="2019-12-29" class="post-time">
-          2019-12-29
+        <time datetime="2020-01-20" class="post-time">
+          2020-01-20
         </time>
         <div class="post-category">
-            <a href="http://auntlei.com/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/"> 分布式存储 </a>
+            <a href="http://auntlei.com/categories/%E6%9D%82%E9%A1%B9/"> 杂项 </a>
             
           </div>
         
@@ -322,20 +322,15 @@
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#heading">基础知识回顾</a>
+    <li><a href="#heading">为什么要做定投？</a></li>
+    <li><a href="#heading-1">场内基金还是场外基金？</a></li>
+    <li><a href="#heading-2">定投方式与金额</a>
       <ul>
-        <li><a href="#heading-1">机械磁盘平均寻址时间不可忽略</a></li>
-        <li><a href="#inode">文件系统与inode</a></li>
+        <li><a href="#heading-3">定投是怎么运作的，怎么选择定投目标，什么时候卖出？</a></li>
+        <li><a href="#heading-4">上证综合指数变化</a></li>
+        <li><a href="#heading-5">综上、具体操作方式</a></li>
       </ul>
     </li>
-    <li><a href="#haystack">haystack</a>
-      <ul>
-        <li><a href="#heading-2">核心思想</a></li>
-        <li><a href="#heading-3">架构</a></li>
-      </ul>
-    </li>
-    <li><a href="#10haystack">过去10年了，haystack还适用吗？</a></li>
-    <li><a href="#heading-4">参考文献</a></li>
   </ul>
 </nav>
   </div>
@@ -343,78 +338,42 @@
 
     
     <div class="post-content">
-      <p>facebook 09年发表的存储系统haystack，主要是优化海量小文件的访问效率，其核心思想是减少定位文件inode所需要的磁盘操作。通过回顾文件访问的相关的基础知识，我们也就能理解haystack的动机，以及之所以能提升性能的根本原因。</p>
-<h2 id="heading">基础知识回顾</h2>
-<p>在介绍linux文件系统之前，有必要简单回顾一下HDD。虽然目前SSD的成本越来越低，容量也越来越大，但是现在HDD在企业存储中，仍占据主要地位。SSD相对HDD最显著的提升是随机访问的性能的质变，但是对于上层文件系统而言，对下层块存储的使用方式没有改变。</p>
-<h3 id="heading-1">机械磁盘平均寻址时间不可忽略</h3>
-<p>作为软件工程师，我们可以选择性地忽略磁盘的一些细节（比如远近圆心扇区存储介质密度差异）而只关注影响应用开发的抽象逻辑。如<a href="">下图</a>所示，机械磁盘由一组“共进退”的机械臂和若干双面的碟片组成。</p>
-<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191229232729.png" alt=""></p>
-<p>更为简化地，我们实际只需要关注如下图中概念。</p>
-<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191229235404.png" alt=""></p>
-<blockquote>
-<p>特意画出机械臂是为了让读者能更深刻地意识到移动是缓慢的。</p>
-</blockquote>
-<p>扇区（Sector），磁盘I/O的最小单位，驱动程序对磁盘的读写操作都是读写一整个扇区，驱动程序能保证对整个扇区操作的原子性。过去512Byte的扇区比较常见，但是现在4K大小的扇区逐渐成为主流（4k也是常规linux一个页的大小）。而一条磁道（track）上有许多扇区。</p>
-<p>因此影响磁盘读写速度的主要有两个因素：</p>
-<ol>
-<li>寻道时间，移动机械臂使磁头位于对应磁道之上的时间。</li>
-<li>寻址时间，通过转到碟片使得磁头位于对应扇区上的时间。</li>
-</ol>
-<p>可以从下表中大致知道HDD的性能与其它存储介质的差距。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-fallback" data-lang="fallback">Latency Comparison Numbers
---------------------------
-L1 cache reference                           0.5 ns
-L2 cache reference                           7   ns                      14x L1 cache
-Main memory reference                      100   ns                      20x L2 cache, 200x L1 cache
-Send 1 KB bytes over 1 Gbps network     10,000   ns       10 us
-Read 4 KB randomly from SSD*           150,000   ns      150 us          ~1GB/sec SSD
-Read 1 MB sequentially from memory     250,000   ns      250 us
-Round trip within same datacenter      500,000   ns      500 us
-Read 1 MB sequentially from SSD*     1,000,000   ns    1,000 us    1 ms  ~1GB/sec SSD, 4X memory
-Disk seek                           10,000,000   ns   10,000 us   10 ms  20x datacenter roundtrip
-Read 1 MB sequentially from 1 Gbps  10,000,000   ns   10,000 us   10 ms  40x memory, 10X SSD
-Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x memory, 30X SSD
-Send packet CA-&gt;Netherlands-&gt;CA    150,000,000   ns  150,000 us  150 ms
-
-Notes
------
-1 ns = 10^-9 seconds
-1 us = 10^-6 seconds = 1,000 ns
-1 ms = 10^-3 seconds = 1,000 us = 1,000,000 ns
-</code></pre></td></tr></table>
-</div>
-</div><p>寻址（含寻道）时间10ms，而连续读取10MB（以512B算，20个扇区）的数据却只需要30ms。<strong>最重要的，作为软件开发者要意识到机械磁盘的平均寻道时间是不可忽略的</strong></p>
-<h3 id="inode">文件系统与inode</h3>
-<h2 id="haystack">haystack</h2>
-<h3 id="heading-2">核心思想</h3>
-<h3 id="heading-3">架构</h3>
-<h2 id="10haystack">过去10年了，haystack还适用吗？</h2>
-<h2 id="heading-4">参考文献</h2>
-<p><a href="https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf">haystack</a></p>
+      <h2 id="heading">为什么要做定投？</h2>
+<p>我目前投资方式比较简单，基本上以招商银行的定期理财为主，年化收益率<strong>接近4%</strong>，剩余部分则是一些T+0或者T+1的货币基金，比如支付宝，收益更低<strong>不到3%</strong>。而<a href="https://www.ceicdata.com/zh-hans/indicator/china/consumer-price-index-cpi-growth">2019-12 CPI已经高到4.5%</a>，跑输了通胀。 决定要参入到股市之中，承担市场经济发展的风险，也享受相等的回报。之前短暂的做过短线，赶上大盘整体回升，收益还不错，也明显跑赢了大盘，但是需要的精力太多，目前看来没有足够的精力继续操作短线。想参入股市，那我目前的选择只能是投资基金。基金做短线，收益不大，因为我只参与指数基金，而指数基金的短期振幅不会很大，没有盈利空间。如果花时间挑选一些其它板块、主题的基金，找出振幅大的，那还不如花时间做个股的短线。综上我决定定投指数基金，作为一种长期的理财方式。</p>
+<h2 id="heading-1">场内基金还是场外基金？</h2>
+<p>为方便比较，找一个常见的沪深300类的场外基金做对比。</p>
+<p>天弘沪深300ETF链接C， 买入费率0，管理费0.5%（每年），托管费0.1%（每年），销售服务费0.2%（每年），持有天数&gt;7日则卖出费率为0，那么持有1年，3年，5年的大致费率为，0.8%，2.4%， 4%。</p>
+<p>如果我们直接购买300ETF，假设每次定投金额小于1万，则收取5元的佣金（ETF只收取佣金，没有印花税、过户费之类），如果是1000元的ETF， 那么持有1年、3年、5年的费率大致为， 1%, 1%, 1%。如果一次购买约2000的ETF， 则费率降低至0.5%， 0.5%， 0.5%。</p>
+<p>从上面的对比中可以看出<strong>直接购买ETF有明显的费率优势，这种优势会随着持有时间的增加和投资金额的增大而愈发明显</strong>。既然我打算长期定投，那我肯定<strong>选择ETF</strong>了。当然由于像股票一样，ETF的买卖单位是100份的整数倍，操作起来相对会麻烦一点。</p>
+<h2 id="heading-2">定投方式与金额</h2>
+<p>由于时间精力有限，并且计划长期定投，所以我决定只关注300ETF和500ETF。既然是投资，那么一定不能囫囵吞枣，更不能道听途说，一定要想明白什么情况下能赚钱，什么情况下亏损的可能性大。</p>
+<p>投资赚钱的本质是<strong>低买高卖</strong>。实际操作中的难点在于未来的不确定性。高和低是相对概念，没有绝对值可以参考，因为未来的不确定性、低买高卖就是一种博弈。是期望值和实际值之间的博弈，是一种赌博。</p>
+<h3 id="heading-3">定投是怎么运作的，怎么选择定投目标，什么时候卖出？</h3>
+<p>定投最根本的假设是，<strong>市场是波动的</strong>。通过定时定额（投资金额）的投资投资方式，在市价低时候多买入，而在市价高少买入，从而在整体上降低持仓成本，降低亏损的风险，当然利益相对最优解也会变少。<strong>可以这么理解，市场的振幅越大，定投的收益空间越大</strong>。这个很好理解，如果市场毫无波澜，那么定投根本没有盈利空间，反而会亏损手续费，另外只要收益率低于银行定期存款的其实都是亏损。反之，假设市场是波动的，举个比较简单的具体例子，假设市价按照1、2、1、2这样周期性波动，那么定投的持仓成本就接近于1.5，只要市场保持波动，那么我们就有在市价为2的时候出手的机会，也就有盈利的机会。</p>
+<p><strong>市场必然是波动的</strong>，只要我们有耐心（对定投的这笔资金流动性要求不高），我们就能等到卖出价高于持仓成本的时机。当然这个前提你选的基本不能在你的投资周期内整体上程明显的下跌趋势。我们需要一个<strong>具有周期性</strong>的基金来做定投，而指数基金就是一个不错的选择。<em>TODO：有空我会花的时间研究下其它的基金，说不定有同样具有稳定周期，但是周期性更短的基金</em>。</p>
+<h3 id="heading-4">上证综合指数变化</h3>
+<p>从2001年初到2019年底之间，出现了两个牛市。</p>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200116133847.png" alt=""></p>
+<p>再看近几年，最高点在2015.06 为5178。这波牛市持续了半年，成交量大市场活跃。之后跳水，从2016.01至今没有太大波澜。2019年年初市场活跃了一波。</p>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200116134935.png" alt=""></p>
+<p>如果我们假设再过3年，能再一次达到5000点的顶峰，如果持仓成本4000，那么年化8%左右。</p>
+<p><strong>以上证综合指数为参考，我们观察下300ETF，和500ETF</strong></p>
+<p><strong>300ETF</strong>，处于较危险的高位。如果三年内从4.0 升到5.0，持仓成本按照4.5计算的话，那么收益率为3.7%左右。照这样的估算方式，似乎没有太盈利空间。<strong>目前计划 3.7 以下才做买入</strong>。</p>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119132608.png" alt=""></p>
+<p><strong>500ETF</strong>，似乎还很有空间。如果三年内从6.0升到9.0，持仓成本按照7.5计算的话，那么收益率为6.7%左右。</p>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119132735.png" alt=""></p>
+<h3 id="heading-5">综上、具体操作方式</h3>
+<h4 id="heading-6">买入</h4>
+<p><strong>定投时间为发放工资的下个交易日</strong>。</p>
+<p>以500ETF为主，2k左右做“定投”。正常情况以成交价&lt;=2k为界（基本上就是3手），如果价格低于5.8则买4手（稍大于2K）。 平时（非定投范围）如果遇到&lt;5的情况，时情况加仓1~2手。
+<img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119134608.png" alt=""></p>
+<p>300ETF不做定投，按月观察，如果市价＜3.7 （理想情况&lt;3.5）视情况买入3手，单月最多投资一次。</p>
+<h4 id="heading-7">卖出</h4>
+<p>由于市场周期性的存在，我们需要在一个合适时间点将基金卖出，从而尽可能的实现利益最大化。</p>
+<p><strong>300ETF</strong>4.3是一个参考点。<br>
+<strong>500ETF</strong>7.0， 8.0，9.0 三个参考点，要求年化&gt;10%<br>
+<img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200120073806.png" alt="">
+<strong>调整心态，不求最优解</strong></p>
     </div>
 
     
@@ -427,7 +386,7 @@ Notes
   <p class="copyright-item">
     <span class="item-title">上次更新</span>
     <span class="item-content">
-      2019-12-29
+      2020-01-20
       
     </span>
   </p>
@@ -444,31 +403,16 @@ Notes
 
     <footer class="post-footer">
       <div class="post-tags">
-          <a href="http://auntlei.com/tags/%E5%AD%98%E5%82%A8/">存储</a>
-          <a href="http://auntlei.com/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
-          <a href="http://auntlei.com/tags/%E7%BB%8F%E5%85%B8%E8%AE%BA%E6%96%87/">经典论文</a>
+          <a href="http://auntlei.com/tags/%E8%82%A1%E5%B8%82/">股市</a>
           
         </div>
 
       
       <nav class="post-nav">
         
-          <a class="prev" href="/post/reading/meaning_of_life/">
-            
-            <i class="iconfont">
-              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="18" height="18">
-  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
-</svg>
-
-            </i>
-            <span class="prev-text nav-default">活出生命的意义</span>
-            <span class="prev-text nav-mobile">上一篇</span>
-          </a>
         
-          <a class="next" href="/post/misc/auto_reload_model/">
-            <span class="next-text nav-default">自动重启电信光猫</span>
+          <a class="next" href="/post/reading/meaning_of_life/">
+            <span class="next-text nav-default">活出生命的意义</span>
             <span class="prev-text nav-mobile">下一篇</span>
             
             <i class="iconfont">

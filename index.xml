@@ -5,7 +5,7 @@
     <link>http://auntlei.com/</link>
     <description>Recent content on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sun, 12 Jan 2020 17:04:39 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 20 Jan 2020 07:12:29 +0800</lastBuildDate>
     
         <atom:link href="http://auntlei.com/index.xml" rel="self" type="application/rss+xml" />
     
@@ -31,6 +31,52 @@
     </item>
     
     <item>
+      <title>我的基金定投计划</title>
+      <link>http://auntlei.com/post/misc/etf/</link>
+      <pubDate>Mon, 20 Jan 2020 07:12:29 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/misc/etf/</guid>
+      
+        <description>&lt;h2 id=&#34;heading&#34;&gt;为什么要做定投？&lt;/h2&gt;
+&lt;p&gt;我目前投资方式比较简单，基本上以招商银行的定期理财为主，年化收益率&lt;strong&gt;接近4%&lt;/strong&gt;，剩余部分则是一些T+0或者T+1的货币基金，比如支付宝，收益更低&lt;strong&gt;不到3%&lt;/strong&gt;。而&lt;a href=&#34;https://www.ceicdata.com/zh-hans/indicator/china/consumer-price-index-cpi-growth&#34;&gt;2019-12 CPI已经高到4.5%&lt;/a&gt;，跑输了通胀。 决定要参入到股市之中，承担市场经济发展的风险，也享受相等的回报。之前短暂的做过短线，赶上大盘整体回升，收益还不错，也明显跑赢了大盘，但是需要的精力太多，目前看来没有足够的精力继续操作短线。想参入股市，那我目前的选择只能是投资基金。基金做短线，收益不大，因为我只参与指数基金，而指数基金的短期振幅不会很大，没有盈利空间。如果花时间挑选一些其它板块、主题的基金，找出振幅大的，那还不如花时间做个股的短线。综上我决定定投指数基金，作为一种长期的理财方式。&lt;/p&gt;
+&lt;h2 id=&#34;heading-1&#34;&gt;场内基金还是场外基金？&lt;/h2&gt;
+&lt;p&gt;为方便比较，找一个常见的沪深300类的场外基金做对比。&lt;/p&gt;
+&lt;p&gt;天弘沪深300ETF链接C， 买入费率0，管理费0.5%（每年），托管费0.1%（每年），销售服务费0.2%（每年），持有天数&amp;gt;7日则卖出费率为0，那么持有1年，3年，5年的大致费率为，0.8%，2.4%， 4%。&lt;/p&gt;
+&lt;p&gt;如果我们直接购买300ETF，假设每次定投金额小于1万，则收取5元的佣金（ETF只收取佣金，没有印花税、过户费之类），如果是1000元的ETF， 那么持有1年、3年、5年的费率大致为， 1%, 1%, 1%。如果一次购买约2000的ETF， 则费率降低至0.5%， 0.5%， 0.5%。&lt;/p&gt;
+&lt;p&gt;从上面的对比中可以看出&lt;strong&gt;直接购买ETF有明显的费率优势，这种优势会随着持有时间的增加和投资金额的增大而愈发明显&lt;/strong&gt;。既然我打算长期定投，那我肯定&lt;strong&gt;选择ETF&lt;/strong&gt;了。当然由于像股票一样，ETF的买卖单位是100份的整数倍，操作起来相对会麻烦一点。&lt;/p&gt;
+&lt;h2 id=&#34;heading-2&#34;&gt;定投方式与金额&lt;/h2&gt;
+&lt;p&gt;由于时间精力有限，并且计划长期定投，所以我决定只关注300ETF和500ETF。既然是投资，那么一定不能囫囵吞枣，更不能道听途说，一定要想明白什么情况下能赚钱，什么情况下亏损的可能性大。&lt;/p&gt;
+&lt;p&gt;投资赚钱的本质是&lt;strong&gt;低买高卖&lt;/strong&gt;。实际操作中的难点在于未来的不确定性。高和低是相对概念，没有绝对值可以参考，因为未来的不确定性、低买高卖就是一种博弈。是期望值和实际值之间的博弈，是一种赌博。&lt;/p&gt;
+&lt;h3 id=&#34;heading-3&#34;&gt;定投是怎么运作的，怎么选择定投目标，什么时候卖出？&lt;/h3&gt;
+&lt;p&gt;定投最根本的假设是，&lt;strong&gt;市场是波动的&lt;/strong&gt;。通过定时定额（投资金额）的投资投资方式，在市价低时候多买入，而在市价高少买入，从而在整体上降低持仓成本，降低亏损的风险，当然利益相对最优解也会变少。&lt;strong&gt;可以这么理解，市场的振幅越大，定投的收益空间越大&lt;/strong&gt;。这个很好理解，如果市场毫无波澜，那么定投根本没有盈利空间，反而会亏损手续费，另外只要收益率低于银行定期存款的其实都是亏损。反之，假设市场是波动的，举个比较简单的具体例子，假设市价按照1、2、1、2这样周期性波动，那么定投的持仓成本就接近于1.5，只要市场保持波动，那么我们就有在市价为2的时候出手的机会，也就有盈利的机会。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;市场必然是波动的&lt;/strong&gt;，只要我们有耐心（对定投的这笔资金流动性要求不高），我们就能等到卖出价高于持仓成本的时机。当然这个前提你选的基本不能在你的投资周期内整体上程明显的下跌趋势。我们需要一个&lt;strong&gt;具有周期性&lt;/strong&gt;的基金来做定投，而指数基金就是一个不错的选择。&lt;em&gt;TODO：有空我会花的时间研究下其它的基金，说不定有同样具有稳定周期，但是周期性更短的基金&lt;/em&gt;。&lt;/p&gt;
+&lt;h3 id=&#34;heading-4&#34;&gt;上证综合指数变化&lt;/h3&gt;
+&lt;p&gt;从2001年初到2019年底之间，出现了两个牛市。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200116133847.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;再看近几年，最高点在2015.06 为5178。这波牛市持续了半年，成交量大市场活跃。之后跳水，从2016.01至今没有太大波澜。2019年年初市场活跃了一波。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200116134935.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;如果我们假设再过3年，能再一次达到5000点的顶峰，如果持仓成本4000，那么年化8%左右。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;以上证综合指数为参考，我们观察下300ETF，和500ETF&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;300ETF&lt;/strong&gt;，处于较危险的高位。如果三年内从4.0 升到5.0，持仓成本按照4.5计算的话，那么收益率为3.7%左右。照这样的估算方式，似乎没有太盈利空间。&lt;strong&gt;目前计划 3.7 以下才做买入&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119132608.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;500ETF&lt;/strong&gt;，似乎还很有空间。如果三年内从6.0升到9.0，持仓成本按照7.5计算的话，那么收益率为6.7%左右。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119132735.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;heading-5&#34;&gt;综上、具体操作方式&lt;/h3&gt;
+&lt;h4 id=&#34;heading-6&#34;&gt;买入&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;定投时间为发放工资的下个交易日&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;以500ETF为主，2k左右做“定投”。正常情况以成交价&amp;lt;=2k为界（基本上就是3手），如果价格低于5.8则买4手（稍大于2K）。 平时（非定投范围）如果遇到&amp;lt;5的情况，时情况加仓1~2手。
+&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119134608.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;300ETF不做定投，按月观察，如果市价＜3.7 （理想情况&amp;lt;3.5）视情况买入3手，单月最多投资一次。&lt;/p&gt;
+&lt;h4 id=&#34;heading-7&#34;&gt;卖出&lt;/h4&gt;
+&lt;p&gt;由于市场周期性的存在，我们需要在一个合适时间点将基金卖出，从而尽可能的实现利益最大化。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;300ETF&lt;/strong&gt;4.3是一个参考点。&lt;br&gt;
+&lt;strong&gt;500ETF&lt;/strong&gt;7.0， 8.0，9.0 三个参考点，要求年化&amp;gt;10%&lt;br&gt;
+&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200120073806.png&#34; alt=&#34;&#34;&gt;
+&lt;strong&gt;调整心态，不求最优解&lt;/strong&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>活出生命的意义</title>
       <link>http://auntlei.com/post/reading/meaning_of_life/</link>
       <pubDate>Sun, 12 Jan 2020 17:04:39 +0800</pubDate>
@@ -42,88 +88,6 @@
 &lt;p&gt;《活出生命的意义》是弗兰克尔对生命的思考，这种思考最终帮助他从纳粹集中营幸存下来。这本书不是一部文学作品，而是一部心理学作品。书的前半部分是对自己在集中营经历的描述，在描述的过程中阐述自己的的心里学观点。而后半部分则是对意义疗法的总结和实践指导。想帮助一个人活下去，就帮助他找到生命的意义，这个意义可以很简单，就是一个简单的责任，比如许三观对家庭的责任。&lt;/p&gt;
 &lt;p&gt;看了余华的《活着》觉得意犹未尽，于是又拜读了他的另一部经典著作，《许三观卖血记》。与《活着》充满了生活的沉重感不同，《许三观卖血记》在艰苦中透露着希望。当生活中有迈不过去的砍时，总是可以通过卖血这一离谱的生意来渡过。卖血之所以离谱是因为一次卖血35块钱，已经超过了一户农民一年的所得。这钱来得太容易，就好比摇钱树一般，但实际上确实用命在赌博。第一次读到许三观去卖血，我就担心他会染上严重的传染病，可许三观是幸运的。这使得读这本书的时候轻松不少。许三观是刀子嘴、豆腐心，在邻里有难之时还是愿意帮忙。不过虽然帮忙、但是嘴上依旧咄咄逼人、这些描写十分有趣。&lt;/p&gt;
 &lt;p&gt;虽然有了kindle，可是我也快而立之年了，生命的意义当然不是拥有一个kindle、或者其它新奇的电子产品。那生命的意义是什么？娶妻生子、传宗接代？这些可以是人生路上的必经路，但是不应该是朝着终点行进的动力源泉。我还不知道人生的意义，但是有一点是明确的，我必须自己做选择，然后承担后果。我一定要保持自己的精神自由，选择自己的性格，自己的道德，哪怕处于何种苦痛和压迫之中。物质能影响选择的难度，但不能决定选择的结果。最简单地，当我快控制不住自己的脾气时，当我内心产生冲动时，一定要想想这是我想象中的我应有的行为吗？人活着如果不思考，不规划，只是被环境驱使，那就和羊群中的羊没有区别，生存的意义也不再属于自己。&lt;/p&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>深入理解facebook haystack</title>
-      <link>http://auntlei.com/post/paper/haystack/</link>
-      <pubDate>Sun, 29 Dec 2019 21:05:45 +0800</pubDate>
-      
-      <guid>http://auntlei.com/post/paper/haystack/</guid>
-      
-        <description>&lt;p&gt;facebook 09年发表的存储系统haystack，主要是优化海量小文件的访问效率，其核心思想是减少定位文件inode所需要的磁盘操作。通过回顾文件访问的相关的基础知识，我们也就能理解haystack的动机，以及之所以能提升性能的根本原因。&lt;/p&gt;
-&lt;h2 id=&#34;heading&#34;&gt;基础知识回顾&lt;/h2&gt;
-&lt;p&gt;在介绍linux文件系统之前，有必要简单回顾一下HDD。虽然目前SSD的成本越来越低，容量也越来越大，但是现在HDD在企业存储中，仍占据主要地位。SSD相对HDD最显著的提升是随机访问的性能的质变，但是对于上层文件系统而言，对下层块存储的使用方式没有改变。&lt;/p&gt;
-&lt;h3 id=&#34;heading-1&#34;&gt;机械磁盘平均寻址时间不可忽略&lt;/h3&gt;
-&lt;p&gt;作为软件工程师，我们可以选择性地忽略磁盘的一些细节（比如远近圆心扇区存储介质密度差异）而只关注影响应用开发的抽象逻辑。如&lt;a href=&#34;&#34;&gt;下图&lt;/a&gt;所示，机械磁盘由一组“共进退”的机械臂和若干双面的碟片组成。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191229232729.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;更为简化地，我们实际只需要关注如下图中概念。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191229235404.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;特意画出机械臂是为了让读者能更深刻地意识到移动是缓慢的。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;扇区（Sector），磁盘I/O的最小单位，驱动程序对磁盘的读写操作都是读写一整个扇区，驱动程序能保证对整个扇区操作的原子性。过去512Byte的扇区比较常见，但是现在4K大小的扇区逐渐成为主流（4k也是常规linux一个页的大小）。而一条磁道（track）上有许多扇区。&lt;/p&gt;
-&lt;p&gt;因此影响磁盘读写速度的主要有两个因素：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;寻道时间，移动机械臂使磁头位于对应磁道之上的时间。&lt;/li&gt;
-&lt;li&gt;寻址时间，通过转到碟片使得磁头位于对应扇区上的时间。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;可以从下表中大致知道HDD的性能与其它存储介质的差距。&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
-&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;Latency Comparison Numbers
---------------------------
-L1 cache reference                           0.5 ns
-L2 cache reference                           7   ns                      14x L1 cache
-Main memory reference                      100   ns                      20x L2 cache, 200x L1 cache
-Send 1 KB bytes over 1 Gbps network     10,000   ns       10 us
-Read 4 KB randomly from SSD*           150,000   ns      150 us          ~1GB/sec SSD
-Read 1 MB sequentially from memory     250,000   ns      250 us
-Round trip within same datacenter      500,000   ns      500 us
-Read 1 MB sequentially from SSD*     1,000,000   ns    1,000 us    1 ms  ~1GB/sec SSD, 4X memory
-Disk seek                           10,000,000   ns   10,000 us   10 ms  20x datacenter roundtrip
-Read 1 MB sequentially from 1 Gbps  10,000,000   ns   10,000 us   10 ms  40x memory, 10X SSD
-Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x memory, 30X SSD
-Send packet CA-&amp;gt;Netherlands-&amp;gt;CA    150,000,000   ns  150,000 us  150 ms
-
-Notes
------
-1 ns = 10^-9 seconds
-1 us = 10^-6 seconds = 1,000 ns
-1 ms = 10^-3 seconds = 1,000 us = 1,000,000 ns
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;寻址（含寻道）时间10ms，而连续读取10MB（以512B算，20个扇区）的数据却只需要30ms。&lt;strong&gt;最重要的，作为软件开发者要意识到机械磁盘的平均寻道时间是不可忽略的&lt;/strong&gt;&lt;/p&gt;
-&lt;h3 id=&#34;inode&#34;&gt;文件系统与inode&lt;/h3&gt;
-&lt;h2 id=&#34;haystack&#34;&gt;haystack&lt;/h2&gt;
-&lt;h3 id=&#34;heading-2&#34;&gt;核心思想&lt;/h3&gt;
-&lt;h3 id=&#34;heading-3&#34;&gt;架构&lt;/h3&gt;
-&lt;h2 id=&#34;10haystack&#34;&gt;过去10年了，haystack还适用吗？&lt;/h2&gt;
-&lt;h2 id=&#34;heading-4&#34;&gt;参考文献&lt;/h2&gt;
-&lt;p&gt;&lt;a href=&#34;https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf&#34;&gt;haystack&lt;/a&gt;&lt;/p&gt;</description>
       
     </item>
     
