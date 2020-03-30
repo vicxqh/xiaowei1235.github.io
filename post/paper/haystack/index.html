@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>经典论文导读系列之：facebook haystack - 萧七海的博客</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="萧七海" />
+  <meta name="description" content="" />
+<meta name="keywords" content="facebook, haystack" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.61.0" />
+
+
+<link rel="canonical" href="http://auntlei.com/post/paper/haystack/" />
+
+
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.0995afa14b62cd93e93cfc066b646c4c17a3eddca0e9d52a1d9dcf5d90aaacd3.css" integrity="sha256-CZWvoUtizZPpPPwGa2RsTBej7dyg6dUqHZ3PXZCqrNM=" media="screen" crossorigin="anonymous">
+
+
+
+
+
+<meta property="og:title" content="经典论文导读系列之：facebook haystack" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://auntlei.com/post/paper/haystack/" />
+<meta property="article:published_time" content="2019-12-29T21:05:45+08:00" />
+<meta property="article:modified_time" content="2019-12-29T21:05:45+08:00" />
+<meta itemprop="name" content="经典论文导读系列之：facebook haystack">
+<meta itemprop="description" content="">
+<meta itemprop="datePublished" content="2019-12-29T21:05:45&#43;08:00" />
+<meta itemprop="dateModified" content="2019-12-29T21:05:45&#43;08:00" />
+<meta itemprop="wordCount" content="3503">
+
+
+
+<meta itemprop="keywords" content="存储,分布式,经典论文," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="经典论文导读系列之：facebook haystack"/>
+<meta name="twitter:description" content=""/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">萧七海的博客</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/">主页</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/post/">归档</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/tags/">标签</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/categories/">分类</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/about/">About</a>
+          
+        
+      </li>
+    
+
+    
+  </ul>
+</nav>
+
+
+  
+    
+
+
+
+
+
+
+  <link rel="stylesheet" href="/lib/photoswipe/photoswipe.min.css" />
+  <link rel="stylesheet" href="/lib/photoswipe/default-skin/default-skin.min.css" />
+
+
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+  
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      萧七海的博客
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/">主页</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/post/">归档</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/tags/">标签</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/categories/">分类</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/about/">About</a>
+          
+
+        
+
+      </li>
+    
+
+    
+    
+
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">经典论文导读系列之：facebook haystack</h1>
+      
+      <div class="post-meta">
+        <time datetime="2019-12-29" class="post-time">
+          2019-12-29
+        </time>
+        <div class="post-category">
+            <a href="http://auntlei.com/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8/"> 分布式存储 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#heading">基础知识回顾</a>
+      <ul>
+        <li><a href="#hdd">机械磁盘HDD</a></li>
+        <li><a href="#linux">Linux文件系统与文件查找</a></li>
+      </ul>
+    </li>
+    <li><a href="#haystack-">haystack 介绍</a>
+      <ul>
+        <li><a href="#heading-1">核心思想</a></li>
+        <li><a href="#heading-2">架构</a></li>
+      </ul>
+    </li>
+    <li><a href="#10haystack">过去10年了，haystack还适用吗？</a></li>
+    <li><a href="#heading-3">参考文献</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>facebook 09年发表的存储系统haystack，主要是优化海量小文件（图片）的访问效率，其核心思想是减少定位文件inode所需要的磁盘操作。通过回顾文件访问的相关的基础知识，我们也就能理解haystack的动机，以及之所以能提升性能的根本原因。</p>
+<h2 id="heading">基础知识回顾</h2>
+<p>在介绍linux文件系统之前，有必要简单回顾一下HDD，haystack论文的性能测试也是在HDD之上进行。SSD相对HDD最显著的提升是随机访问性能的质变，SSD的成本越来越低，容量也越来越大，但是目前HDD的价格优势依旧明显，在企业存储中仍占据主要地位。</p>
+<h3 id="hdd">机械磁盘HDD</h3>
+<p>选择性地忽略磁盘的一些无关硬件细节（比如远近圆心扇区存储介质密度差异）而只关注影响应用开发的抽象逻辑。那么，如<a href="">下图</a>所示，机械磁盘主要包含一组“共进退”的机械臂和若干双面的碟片组成。</p>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191229232729.png" alt=""></p>
+<p>更为简化地，我们实际只需要关注如下图中概念。</p>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191229235404.png" alt=""></p>
+<blockquote>
+<p>特意画出<strong>机械臂</strong>是为了强调移动是缓慢的。</p>
+</blockquote>
+<p>扇区（Sector），磁盘I/O的最小单位，驱动程序对磁盘的读写操作都是读写一整个扇区，驱动程序能保证对整个扇区操作的原子性。过去512Byte的扇区比较常见，但是现在4K大小的扇区逐渐成为主流（4k也是常规linux一个页的大小）。而一条磁道（track）上有许多扇区。</p>
+<p>影响磁盘读写速度的主要有两个因素：</p>
+<ol>
+<li>寻道+寻址时间，移动机械臂使磁头位于对应磁道之上再转动碟片使得磁头位于对应扇区上的时间。</li>
+<li>读写速度。</li>
+</ol>
+<p>可以从<a href="https://gist.github.com/jboner/2841832">下表</a>中大致知道HDD的性能与其它存储介质的差距。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">Latency Comparison Numbers (~2012)
+--------------------------
+Main memory reference                      100   ns
+Send 1 KB bytes over 1 Gbps network     10,000   ns       10 us
+Read 4 KB randomly from SSD*           150,000   ns      150 us          ~1GB/sec SSD
+Read 1 MB sequentially from memory     250,000   ns      250 us
+Read 1 MB sequentially from SSD*     1,000,000   ns    1,000 us    1 ms  ~1GB/sec SSD, 4X memory
+Disk seek                           10,000,000   ns   10,000 us   10 ms 
+Read 1 MB sequentially from 1 Gbps  10,000,000   ns   10,000 us   10 ms  40x memory, 10X SSD
+Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x memory, 30X SSD
+</code></pre></td></tr></table>
+</div>
+</div><p>寻址（含寻道）时间10ms，而连续读取1MB（以512B算，2K个扇区）的数据却只需要30ms。<strong>机械磁盘的平均寻道时间是不可忽略的</strong></p>
+<h3 id="linux">Linux文件系统与文件查找</h3>
+<p>提及Linux文件系统，必然绕不开VFS（Virtual Filesystem Switch）。VFS对下为不同具体的文件系统抽象出一套通用的数据结构和操作函数，对上为用户态应用层程序屏蔽底层文件系统的细节而使用一套通用的接口进行交互。注意，本问题及的文件系统均指非纯内存的文件系统，如ext2、nfs等，而类似procfs、sysfs、tmpfs这种纯内存文件系统不在本文的讨论范围，也不是haystack论文优化的对象。</p>
+<p>VFS定义了四个基本对象，<em>superblock</em>, <em>inode</em>, <em>file</em>, <em>dentry</em>。其中：<em>superblock</em> 用于描述<strong>文件系统</strong>的元信息；<em>inode</em> 用于描述<strong>文件</strong>的元信息(如大小等）；<em>file</em> 对象和具体进程关联，表示其<strong>打开</strong>的一个文件和该进程关系（如打开方式、当前读写位置等）；<em>dentry</em> 表示一个具体的目录项与实际文件的关系（指向某个_inode_）。这四者和进程间的关系如下图所示。
+<img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200130114445.png" alt=""></p>
+<p>具体地，对于每个应用程序而言，其直接操作的对象是文件句柄，也就是我们所说的<code>fd</code>。<code>fd</code>经<code>file descriptor table</code>映射之后指向一个 <em>file</em> 对象（多个fd可能指向同一个 <em>file</em> 对象，比如<code>dup</code>得到的fd），而一个 <em>file</em> 对象指向一个VFS全局的 <em>dentry</em> 对象（因为hardlink，多个 <em>file</em> 对象可能指向同一个 <em>dentry</em> 对象），而一个 <em>dentry</em> 对象指向 <em>inode</em> 对象（两者之间1对1关系），<strong>最终VFS通过 <em>inode</em> 信息进行相应的文件操作</strong>。</p>
+<p><strong>读写文件之前，需要获取 <em>inode</em> 是理解haystack文章的关键点</strong></p>
+<p><em>superblock</em> 通常在文件系统挂载后就加载进内存，因此不会对单次文件访问带来性能影响。而 <em>file</em>，<em>dentry</em> 是由VFS构造的纯内存对象，不需要从磁盘加载，也可以认为没有性能影响。只有 <em>inode</em> 需要通过具体的文件系统构造。通常情况下，VFS在获取文件对应的 <em>inode</em> 时需要访问磁盘，文件系统驱动将从磁盘中拷贝（如ext2/3/4文件系统在磁盘上保存了inode信息，其它文件系统不一定保存了和内存中一样的_inode_结构体，但也需要访问磁盘构造VFS <em>inode</em>）对应的 <em>inode</em> 。那么是不是对于任何一个文件，在对其进行读写之前都需要从磁盘加载inode呢？答案是否定的，为了加速文件查找过程的效率，Linux维护了dcache(dentry cache)，将最近访问的dentry缓存在内存中。被缓存的dentry，其指向的inode也相应地被缓存在内存当中。然而对于海量文件，我们无法做到将所有的文件inode都缓存进内存之中。</p>
+<h2 id="haystack-">haystack 介绍</h2>
+<p>haystack主要为解决facebook海量图片的存储和访问而提出。图片文件具有体积小、一次写入后多次读取、几乎无修改的特点。对Facebook而言，图片的加载速度极其影响用户体验，再加上用户规模庞大，因此haystack必须做到高并发、低延迟。</p>
+<p>CDN(Content Delivery Network, 内容分发网络)在静态文件分发中扮演者举足轻重的角色，借用haystack论文中的图来描述常见的应用场景如下。<br>
+<img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200201172330.png" alt=""></p>
+<p>浏览器（用户）在请求静态资源时（这里主要关心图片，CDN也可以分发其它种类的文件)，web服务器返回CDN的资源地址。浏览器从CDN请求资源时，对于CDN，如果请求的资源在其缓存池中则直接返回，否则通过事先配置好的规则从指定的地点拉取资源并缓存，然后返回给用户。</p>
+<p>这里简单介绍下为什么通过CDN能做到高并发低延迟分发内容：</p>
+<ol>
+<li>基础设施。CDN厂商会搭建（购买、租用）很多基础网络设施，这些设施作为节点分布于全球各地。使用CDN来处理资源请求、在缓存命中的情况下能降低后端服务器的压力。</li>
+<li>就近访问。通过合理的调度、用户可以访问最近（最快）的物理节点来获取资源。</li>
+<li>专有线路。CDN厂商通常有自己的专线网络，这些专线网络相对公用网络带宽更大、网络阻塞的可能性更小。</li>
+</ol>
+<p><strong>那么为什么CDN不能解决Facebook图片分发的问题？</strong></p>
+<p>按照haystack论文中所述，CDN中只缓存了少部分访问频繁的文件，而低频的访问数量巨大，如果将所有的文件都缓存进CDN，虽然理论可行但是成本过高不符合实际。这个现象也叫做<a href="https://zh.wikipedia.org/wiki/%E9%95%BF%E5%B0%BE">长尾效应</a></p>
+<h3 id="heading-1">核心思想</h3>
+<p>在使用haystack之前，Facebook的图片系统使用如下图所示的架构，即若干图片服务器通过NFS的方式挂载了数个NAS存储。Facebook并没有公布其使用的NASA上具体的软件系统，不过从文章的描述来看，即使不能肯定这些NAS是Linux系统，也可以确定他们有类似上文描述的文件访问过程，即在读取文件内容之前需要先进行一次IO将对应的inode加载进内存之中。对于我们读者来说，这些NAS系统的细节我们并不需要关心，我们可以假设这些NAS就是一些Linux系统，这并不妨碍我们理解haystack的整体设计。
+<img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200201185805.png" alt=""></p>
+<h4 id="io">读取一张图片，需要多少次IO操作？</h4>
+<blockquote>
+<p>再简单回顾一下机械硬盘，磁盘寻址时间约10ms，顺序读取1MB数据约30ms。</p>
+</blockquote>
+<p>假设图片大小为64KB，为方便估算，我们假设这64KB的数据是连续的，也就是说只需要一次IO操作。虽然采用传统的基于block的文件系统时，这64KB的数据会分散在多个不通过的数据块中（因为数据不大，假设没有通过多级指针索引的数据块），虽然文件系统会为这64KB的数据发起多个不同的IO操作，但是因为他们是连续的块，最终经过编排调度之后也会合成一个IO操作。</p>
+<p>假设文件存放在多级目录中，在查找文件时，路径中的每一项都需要别解析成一个dentry对象，如果没有被dcache缓存住，那么也需要从磁盘加载对应的inode，也就是需要一次IO操作。同时，如果目录下的文件太多，以至于有些文件存放到目录的二级甚至三级数据索引中，并且由于目录项的查找是简单的遍历，那么需要更多的IO操作。通过调整目录项的大小或者使用更先进的一些文件系统（一些采用b-tree的文件系统），文件查找需要的IO操作可能会更小，但是我们可以认为对于一个文件至一次以上的磁盘操作用于读取其inode。</p>
+<p>我们知道哪怕仅仅是从磁盘读取一个扇区的数据，磁盘寻址时间也是一个不可忽略的开销。对于数据不大的图片而言，我们可以粗略认为有一半的额外开销都花在了读取文件的元信息之上。</p>
+<p><strong>haystack的主要贡献也就是提出了一种将所有图片的元信息都缓存进内存，从而加速小文件读取的优化方法。</strong></p>
+<h3 id="heading-2">架构</h3>
+<p>Haystack是一个分布式对象存储，主要包含三个模块：Directory、Cache和Storage。其中，Directory是一个元数据管理服务，Cache是数据缓存，而Storage是数据最终的存放地点。
+<img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200202165747.png" alt=""></p>
+<p>（由于工作原因没有时间写细节了，以后如果再搞存储会回来补充完整。）</p>
+<h4 id="storage">Storage</h4>
+<h4 id="directory">Directory</h4>
+<h4 id="cache">Cache</h4>
+<h2 id="10haystack">过去10年了，haystack还适用吗？</h2>
+<h2 id="heading-3">参考文献</h2>
+<ol>
+<li><a href="https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf">haystack</a></li>
+<li>《Understanding the Linux kernel》</li>
+</ol>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">萧七海</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+      2019-12-29
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://auntlei.com/tags/%E5%AD%98%E5%82%A8/">存储</a>
+          <a href="http://auntlei.com/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+          <a href="http://auntlei.com/tags/%E7%BB%8F%E5%85%B8%E8%AE%BA%E6%96%87/">经典论文</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/reading/meaning_of_life/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">活出生命的意义</span>
+            <span class="prev-text nav-mobile">上一篇</span>
+          </a>
+        
+          <a class="next" href="/post/misc/auto_reload_model/">
+            <span class="next-text nav-default">自动重启电信光猫</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+    
+
+  
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="icon-links">
+  
+  
+    <a href="mailto:xiaowei1235@gmail.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://auntlei.com/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+   
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2019 -
+    2020
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        萧七海
+        
+      </span></span>
+
+  
+  
+
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ=" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <script type="text/javascript" src="/js/load-photoswipe.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe.min.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe-ui-default.min.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
