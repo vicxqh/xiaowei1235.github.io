@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>golang新手可能踩的坑 - 萧七海的博客</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="萧七海" />
+  <meta name="description" content="" />
+<meta name="keywords" content="golang, 最佳实践" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.60.1" />
+
+
+<link rel="canonical" href="http://auntlei.com/post/golang/more-effective-go/" />
+
+
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.fa3d941d1d0e0ddc985804227feabffea55c89883eb0af34e0532a7ae9135151.css" integrity="sha256-&#43;j2UHR0ODdyYWAQif&#43;q//qVciYg&#43;sK804FMqeukTUVE=" media="screen" crossorigin="anonymous">
+
+
+
+
+
+<meta property="og:title" content="golang新手可能踩的坑" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://auntlei.com/post/golang/more-effective-go/" />
+<meta property="article:published_time" content="2020-03-30T22:17:34+08:00" />
+<meta property="article:modified_time" content="2020-03-30T22:17:34+08:00" />
+<meta itemprop="name" content="golang新手可能踩的坑">
+<meta itemprop="description" content="">
+<meta itemprop="datePublished" content="2020-03-30T22:17:34&#43;08:00" />
+<meta itemprop="dateModified" content="2020-03-30T22:17:34&#43;08:00" />
+<meta itemprop="wordCount" content="2287">
+
+
+
+<meta itemprop="keywords" content="golang," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="golang新手可能踩的坑"/>
+<meta name="twitter:description" content=""/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">萧七海的博客</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/">主页</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/post/">归档</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/tags/">标签</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/categories/">分类</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/about/">About</a>
+          
+        
+      </li>
+    
+
+    
+  </ul>
+</nav>
+
+
+  
+    
+
+
+
+
+
+
+  <link rel="stylesheet" href="/lib/photoswipe/photoswipe.min.css" />
+  <link rel="stylesheet" href="/lib/photoswipe/default-skin/default-skin.min.css" />
+
+
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+  
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      萧七海的博客
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/">主页</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/post/">归档</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/tags/">标签</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/categories/">分类</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://auntlei.com/about/">About</a>
+          
+
+        
+
+      </li>
+    
+
+    
+    
+
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">golang新手可能踩的坑</h1>
+      
+      <div class="post-meta">
+        <time datetime="2020-03-30" class="post-time">
+          2020-03-30
+        </time>
+        <div class="post-category">
+            <a href="http://auntlei.com/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/"> 编程语言 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#defer">defer</a>
+      <ul>
+        <li><a href="#defer-lifodefer">defer 执行循序为LIFO，参数的值在defer语句执行时就已经确定。</a></li>
+        <li><a href="#deldefer--defer-mutexunlock-mutexunlockdel">defer 并不是免费的。比如 defer Mutex.Unlock 比直接Mutex.Unlock开销更大</a></li>
+      </ul>
+    </li>
+    <li><a href="#slice-vs-array">slice vs array</a>
+      <ul>
+        <li><a href="#array">array的长度是类型的一部分</a></li>
+        <li><a href="#array-">array 是传值的，值指的是整个数组的内容</a></li>
+        <li><a href="#slice-">slice 本质也是传值，但看起来像传递了底层数组的引用</a></li>
+        <li><a href="#slice-mapkeyslicearray">slice 不能作为map对象的key，因为slice没有实现完全实现==操作符，但是array可以。</a></li>
+      </ul>
+    </li>
+    <li><a href="#slice-1">slice 与内存模型</a>
+      <ul>
+        <li><a href="#append-">append 不是线程安全的</a></li>
+        <li><a href="#axbyabsliceaxby">a[x]与b[y]是否存在竟态，与a、b是否为同一slice无关，只与a[x]与b[y]是否指向同一块内存区域有关</a></li>
+      </ul>
+    </li>
+    <li><a href="#byte">与[]byte相关的性能问题</a>
+      <ul>
+        <li><a href="#slice-gc">slice 引用底层数组而造成内存泄露/GC压力</a></li>
+        <li><a href="#copyappend">复制数据时使用copy比append性能更优</a></li>
+        <li><a href="#readerreadfullioutilreadall">如果知道Reader里的数据大小，使用ReadFull而不是ioutil.ReadAll</a></li>
+      </ul>
+    </li>
+    <li><a href="#channel">channel</a>
+      <ul>
+        <li><a href="#groutine-channelsyncmutex">当竞争很激烈时(groutine 大几千)，同样能保证线程安全，但是channel的性能会比sync.Mutex好？</a></li>
+      </ul>
+    </li>
+    <li><a href="#for-range">for range</a>
+      <ul>
+        <li><a href="#range-">如果每个元素比较大，循环时使用range 取值的方式遍历，性能较差</a></li>
+      </ul>
+    </li>
+    <li><a href="#embeding">embeding</a>
+      <ul>
+        <li><a href="#stttss">如果类型S内嵌了T，如果T定义函数接受者都是*T类型，那么S定义的函数也应该以*S为接受者为佳</a></li>
+      </ul>
+    </li>
+    <li><a href="#heading">参考资料</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>写出地道的golang风格的代码，官方文档<a href="https://golang.org/doc/effective_go.html#pointers_vs_values">Effective GO</a>、<a href="https://github.com/golang/go/wiki/CodeReviewComments">Go Code Review Comments</a>介绍得很详细，而且很多大厂也有自己内部的风格，在这里就不一一赘述。本文只关注可能引入bug或者性能下降的错误写法，及一些最佳实践。为方便查看，每个tip作为一个小标题单独列出。</p>
+<p><strong>虽然不涵盖编程风格，但是强烈建议读者使用gofmt，并且打开IDE的lint功能，多次按照lint提示修改代码之后，最终自然而然就会写出符合golang风格的代码</strong></p>
+<h2 id="defer">defer</h2>
+<h3 id="defer-lifodefer">defer 执行循序为LIFO，参数的值在defer语句执行时就已经确定。</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">5</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+    <span class="k">defer</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%d &#34;</span><span class="p">,</span> <span class="nx">i</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>输出</p>
+<pre><code>4 3 2 1 0 
+</code></pre><h3 id="deldefer--defer-mutexunlock-mutexunlockdel"><!-- raw HTML omitted -->defer 并不是免费的。比如 defer Mutex.Unlock 比直接Mutex.Unlock开销更大<!-- raw HTML omitted --></h3>
+<p>对于一些简短的加锁-修改某个值-释放锁的操作可以做么做。但是如果在加锁之后，可能在不同的分支都需要执行释放锁，还是建议直接使用defer Mutex.Unlock， 否则在（以后）修改或者新增分支的时候可能忘记释放锁从而引入bug。除非必要，应该<strong>以代码的可维护性为主</strong>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">i</span> <span class="kt">int</span>
+
+<span class="kd">func</span> <span class="nf">unlockDefer</span><span class="p">(</span><span class="nx">l</span> <span class="o">*</span><span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">l</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">i</span> <span class="p">=</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">Int</span><span class="p">(</span><span class="p">)</span>
+	<span class="k">defer</span> <span class="nx">l</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">unlockDirect</span><span class="p">(</span><span class="nx">l</span> <span class="o">*</span><span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">l</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">i</span> <span class="p">=</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">Int</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">l</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">BenchmarkUnlockDefer</span><span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">B</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">l</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span><span class="p">{</span><span class="p">}</span>
+	<span class="k">for</span> <span class="nx">n</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">n</span> <span class="p">&lt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">N</span><span class="p">;</span> <span class="nx">n</span><span class="o">++</span> <span class="p">{</span>
+		<span class="nf">unlockDefer</span><span class="p">(</span><span class="nx">l</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">BenchmarkUnlockDirect</span><span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">B</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">l</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span><span class="p">{</span><span class="p">}</span>
+	<span class="k">for</span> <span class="nx">n</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">n</span> <span class="p">&lt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">N</span><span class="p">;</span> <span class="nx">n</span><span class="o">++</span> <span class="p">{</span>
+		<span class="nf">unlockDirect</span><span class="p">(</span><span class="nx">l</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><pre><code>BenchmarkUnlockDefer-4          20000000                56.9 ns/op
+BenchmarkUnlockDirect-4         50000000                31.7 ns/op
+</code></pre><h2 id="slice-vs-array">slice vs array</h2>
+<h3 id="array">array的长度是类型的一部分</h3>
+<p><code>[3]int</code> 和 <code>[4]int</code> 是不同的类型</p>
+<h3 id="array-">array 是传值的，值指的是整个数组的内容</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">modify</span><span class="p">(</span><span class="nx">a</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">=</span> <span class="mi">0</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">x</span> <span class="o">:=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span><span class="kt">int</span><span class="p">{</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">}</span>
+	<span class="nf">modify</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>输出</p>
+<pre><code>[3 2 1]
+</code></pre><h3 id="slice-">slice 本质也是传值，但看起来像传递了底层数组的引用</h3>
+<p><strong>golang 都是传值的</strong>，slice看起来像是传引用是因为slice的值本身包含了一个对底层数组的引用（指针）。通过查看下面的slice结构体描述就很清晰。<a href="https://golang.org/src/runtime/slice.go">src/runtime/slice.go</a></p>
+<pre><code>type slice struct {
+	array unsafe.Pointer
+	len   int
+	cap   int
+}
+</code></pre><h3 id="slice-mapkeyslicearray">slice 不能作为map对象的key，因为slice没有实现完全实现<code>==</code>操作符，但是array可以。</h3>
+<p>slice 只能使用<code>==</code> 判断是否为nil。</p>
+<h2 id="slice-1">slice 与内存模型</h2>
+<h3 id="append-">append 不是线程安全的</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">s</span> <span class="p">[</span><span class="p">]</span><span class="kt">int</span>
+	<span class="kd">var</span> <span class="nx">wg</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">WaitGroup</span>
+	<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+		<span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="nx">i</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">s</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span> <span class="nx">i</span><span class="p">)</span>
+			<span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">(</span><span class="p">)</span>
+		<span class="p">}</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">wg</span><span class="p">.</span><span class="nf">Wait</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">s</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>一种可能的输出：</p>
+<pre><code>[0 6 7 9]
+</code></pre><h3 id="axbyabsliceaxby">a[x]与b[y]是否存在竟态，与a、b是否为同一slice无关，只与a[x]与b[y]是否指向同一块内存区域有关</h3>
+<p><a href="https://golang.org/ref/spec#Variables">golang language specification中关于variables的介绍</a> 中有这样一句话</p>
+<blockquote>
+<p><em>Structured</em> variables of <a href="https://golang.org/ref/spec#Array_types">array</a>, <a href="https://golang.org/ref/spec#Slice_types">slice</a>, and <a href="https://golang.org/ref/spec#Struct_types">struct</a> types have elements and fields that may be <a href="https://golang.org/ref/spec#Address_operators">addressed</a> individually. Each such element acts like a variable.</p>
+</blockquote>
+<p>也就是说对于slice s而言，我们应该将s[i]看做是一个独立的变量（variable)。</p>
+<p>例如，对于下面这段代码，虽然a、b是两个完全不同是slice，但是a[1]与b[0]指向了同一块内存区域，等同于同一个变量。如果对a[1]与b[0]的并发访问不做可见性保护（如加锁），那么可能在代码中出现并发bug。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">a</span> <span class="o">:=</span> <span class="p">[</span><span class="p">]</span><span class="kt">int</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">}</span>
+	<span class="nx">b</span> <span class="o">:=</span> <span class="nx">a</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="p">]</span>
+	<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">=</span> <span class="mi">0</span>
+	<span class="p">}</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><pre><code>go run -race ./
+2
+==================
+WARNING: DATA RACE
+Write at 0x00c0000a2008 by goroutine 6:
+  main.main.func1()
+      /Users/vicxiao/workspace/go/test/main.go:11 +0x47
+
+Previous read at 0x00c0000a2008 by main goroutine:
+  main.main()
+      /Users/vicxiao/workspace/go/test/main.go:13 +0xaa
+
+Goroutine 6 (running) created at:
+  main.main()
+      /Users/vicxiao/workspace/go/test/main.go:10 +0x98
+==================
+Found 1 data race(s)
+</code></pre><p>如果将第5行<code>a[1]=0</code> 替换为<code>a[0]=0</code>，那么因为a[0]与b[0]指向的是不同内存区域，就不会有竟态发生。</p>
+<h2 id="byte">与[]byte相关的性能问题</h2>
+<h3 id="slice-gc">slice 引用底层数组而造成内存泄露/GC压力</h3>
+<p>例如，使用<code>ioutil.ReadAll</code>读取了一个10M的文件，并将其前512K切片为另外一个slice b使用。只要b还被引用，那么其指向的底层数组也不会被释放。</p>
+<h3 id="copyappend">复制数据时使用copy比append性能更优</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;crypto/rand&#34;</span>
+	<span class="s">&#34;testing&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">var</span> <span class="p">(</span>
+	<span class="nx">src</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+	<span class="nx">dst</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">genSource</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">rand</span><span class="p">.</span><span class="nf">Read</span><span class="p">(</span><span class="nx">src</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">BenchmarkCopy</span><span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">B</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">for</span> <span class="nx">n</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">n</span> <span class="p">&lt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">N</span><span class="p">;</span> <span class="nx">n</span><span class="o">++</span> <span class="p">{</span>
+		<span class="nx">b</span><span class="p">.</span><span class="nf">StopTimer</span><span class="p">(</span><span class="p">)</span>
+		<span class="nf">genSource</span><span class="p">(</span><span class="p">)</span>
+		<span class="nx">b</span><span class="p">.</span><span class="nf">StartTimer</span><span class="p">(</span><span class="p">)</span>
+		<span class="nb">copy</span><span class="p">(</span><span class="nx">dst</span><span class="p">,</span> <span class="nx">src</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">BenchmarkAppend</span><span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">B</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">for</span> <span class="nx">n</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">n</span> <span class="p">&lt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">N</span><span class="p">;</span> <span class="nx">n</span><span class="o">++</span> <span class="p">{</span>
+		<span class="nx">b</span><span class="p">.</span><span class="nf">StopTimer</span><span class="p">(</span><span class="p">)</span>
+		<span class="nf">genSource</span><span class="p">(</span><span class="p">)</span>
+		<span class="nx">b</span><span class="p">.</span><span class="nf">StartTimer</span><span class="p">(</span><span class="p">)</span>
+		<span class="nx">dst</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">dst</span><span class="p">,</span> <span class="nx">src</span><span class="o">...</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>注：</p>
+<p>dst作为全局变量是防止编译器优化for-loop</p>
+<p>测试时，机器不繁忙</p>
+<pre><code>uptime;go version;go test -bench=. ./
+ 11:56:10 up 294 days, 14:58,  3 users,  load average: 0.58, 0.52, 0.63
+go version go1.14.1 linux/amd64
+goos: linux
+goarch: amd64
+pkg: copyvsappend
+BenchmarkCopy-40      	 9808320	       116 ns/op
+BenchmarkAppend-40    	  479055	      8740 ns/op
+PASS
+</code></pre><h3 id="readerreadfullioutilreadall">如果知道Reader里的数据大小，使用<code>ReadFull</code>而不是<code>ioutil.ReadAll</code></h3>
+<p>常见的场景如读取HTTP body。如果HTTP header中包含了<code>Content-Length</code>那么我们先申请足够大小的内存，然后调用一次<code>io.ReadFull</code> 是最佳的选择。如果我们使用<code>ioutil.ReadAll</code> 则会发生多次不必要的内存申请和内存拷贝。因为<code>ReadAll</code> 是以一个较小的buffer开始，不断地循环调用<code>ReadFull</code>.</p>
+<h2 id="channel">channel</h2>
+<h3 id="groutine-channelsyncmutex">当竞争很激烈时(groutine 大几千)，同样能保证线程安全，但是channel的性能会比sync.Mutex好？</h3>
+<p><a href="https://stackoverflow.com/questions/57562606/why-does-sync-mutex-largely-drop-performance-when-goroutine-contention-is-more-t">https://stackoverflow.com/questions/57562606/why-does-sync-mutex-largely-drop-performance-when-goroutine-contention-is-more-t</a></p>
+<h2 id="for-range">for range</h2>
+<h3 id="range-">如果每个元素比较大，循环时使用range 取值的方式遍历，性能较差</h3>
+<p>这个比较直观，因为有很多内存拷贝</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">X</span> <span class="p">[</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">15</span><span class="p">]</span><span class="kd">struct</span> <span class="p">{</span>
+   <span class="nx">val</span> <span class="kt">int</span>
+   <span class="nx">_</span>   <span class="p">[</span><span class="mi">4096</span><span class="p">]</span><span class="kt">byte</span>
+<span class="p">}</span>
+
+<span class="kd">var</span> <span class="nx">Result</span> <span class="kt">int</span>
+
+<span class="kd">func</span> <span class="nf">BenchmarkRangeIndex</span><span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">B</span><span class="p">)</span> <span class="p">{</span>
+   <span class="kd">var</span> <span class="nx">r</span> <span class="kt">int</span>
+   <span class="k">for</span> <span class="nx">n</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">n</span> <span class="p">&lt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">N</span><span class="p">;</span> <span class="nx">n</span><span class="o">++</span> <span class="p">{</span>
+      <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">X</span> <span class="p">{</span>
+         <span class="nx">x</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">X</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span>
+         <span class="nx">r</span> <span class="o">+=</span> <span class="nx">x</span><span class="p">.</span><span class="nx">val</span>
+      <span class="p">}</span>
+   <span class="p">}</span>
+   <span class="nx">Result</span> <span class="p">=</span> <span class="nx">r</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">BenchmarkRangeValue</span><span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">B</span><span class="p">)</span> <span class="p">{</span>
+   <span class="kd">var</span> <span class="nx">r</span> <span class="kt">int</span>
+   <span class="k">for</span> <span class="nx">n</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">n</span> <span class="p">&lt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">N</span><span class="p">;</span> <span class="nx">n</span><span class="o">++</span> <span class="p">{</span>
+      <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">x</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">X</span> <span class="p">{</span>
+         <span class="nx">r</span> <span class="o">+=</span> <span class="nx">x</span><span class="p">.</span><span class="nx">val</span>
+      <span class="p">}</span>
+   <span class="p">}</span>
+   <span class="nx">Result</span> <span class="p">=</span> <span class="nx">r</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">BenchmarkFor</span><span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">B</span><span class="p">)</span> <span class="p">{</span>
+   <span class="kd">var</span> <span class="nx">r</span> <span class="kt">int</span>
+   <span class="k">for</span> <span class="nx">n</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">n</span> <span class="p">&lt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">N</span><span class="p">;</span> <span class="nx">n</span><span class="o">++</span> <span class="p">{</span>
+      <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="nx">X</span><span class="p">)</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+         <span class="nx">x</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">X</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span>
+         <span class="nx">r</span> <span class="o">+=</span> <span class="nx">x</span><span class="p">.</span><span class="nx">val</span>
+      <span class="p">}</span>
+   <span class="p">}</span>
+   <span class="nx">Result</span> <span class="p">=</span> <span class="nx">r</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><pre><code>BenchmarkRangeIndex-4              10000            127986 ns/op
+BenchmarkRangeValue-4                 50          25939345 ns/op
+BenchmarkFor-4                     10000            127817 ns/op
+</code></pre><h2 id="embeding">embeding</h2>
+<h3 id="stttss">如果类型S内嵌了T，如果T定义函数接受者都是<code>*T</code>类型，那么S定义的函数也应该以<code>*S</code>为接受者为佳</h3>
+<p>这个主要是防止引入bug，例如下面的并发控制器，错误地在外层将接受者定义为值类型。</p>
+<pre><code>type ConcurrentLocker struct{
+	sync.Map
+}
+
+type LeaveFunc func()
+
+func (cl ConcurrentLocker) Enter(key string) (bool, LeaveFunc) {
+	if _, occupied := cl.LoadOrStore(key, struct{}{}); !occupied {
+		return true, func(){
+			cl.Delete(key)
+		}
+	}
+	return false, nil
+}
+
+func main() {
+	cl := ConcurrentLocker{}
+	key := &quot;some-key&quot;
+	fmt.Println(cl.Enter(key))
+	fmt.Println(cl.Enter(key))
+}
+</code></pre><pre><code>$ go run ./
+true 0x10939e0
+true 0x10939e0
+</code></pre><p>当然修复的办法可以是内嵌<code>* sync.Map</code>, 但是这样初始化的时候不够优雅，还需要单独初始化内部的map指针。我个人更倾向于与将<code>Enter</code> 的接受者申明为<code>* ConcurrentLocker</code>, 这样既逻辑正确，其作为整体暴露的函数的接受者也统一。</p>
+<h2 id="heading">参考资料</h2>
+<p><a href="https://golang.org/doc/effective_go.html">https://golang.org/doc/effective_go.html</a></p>
+<p><a href="https://golang.org/ref/mem">https://golang.org/ref/mem</a></p>
+<p><a href="https://golang.org/ref/spec">https://golang.org/ref/spec</a></p>
+<p><a href="https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html">https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html</a></p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">萧七海</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+      2020-03-30
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://auntlei.com/tags/golang/">golang</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/reading/factness/">
+            <span class="next-text nav-default">《事实》--实事求是地认识世界</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+    
+
+  
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="icon-links">
+  
+  
+    <a href="mailto:xiaowei1235@gmail.com" rel="me noopener" class="iconfont"
+      title="email" >
+      <svg class="icon" viewBox="0 0 1451 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M664.781909 681.472759 0 97.881301C0 3.997201 71.046997 0 71.046997 0L474.477909 0 961.649408 0 1361.641813 0C1361.641813 0 1432.688811 3.997201 1432.688811 97.881301L771.345323 681.472759C771.345323 681.472759 764.482731 685.154773 753.594283 688.65053L753.594283 688.664858C741.602731 693.493018 729.424896 695.068979 718.077952 694.839748 706.731093 695.068979 694.553173 693.493018 682.561621 688.664858L682.561621 688.65053C671.644501 685.140446 664.781909 681.472759 664.781909 681.472759L664.781909 681.472759ZM718.063616 811.603883C693.779541 811.016482 658.879232 802.205449 619.10784 767.734955 542.989056 701.759633 0 212.052267 0 212.052267L0 942.809523C0 942.809523 0 1024 83.726336 1024L682.532949 1024 753.579947 1024 1348.948139 1024C1432.688811 1024 1432.688811 942.809523 1432.688811 942.809523L1432.688811 212.052267C1432.688811 212.052267 893.138176 701.759633 817.019477 767.734955 777.248 802.205449 742.347691 811.03081 718.063616 811.603883L718.063616 811.603883Z"></path>
+</svg>
+
+    </a>
+
+
+<a href="http://auntlei.com/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+   
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2019 -
+    2020
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        萧七海
+        
+      </span></span>
+
+  
+  
+
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ=" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <script type="text/javascript" src="/js/load-photoswipe.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe.min.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe-ui-default.min.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

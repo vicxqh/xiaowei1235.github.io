@@ -5,7 +5,7 @@
     <link>http://auntlei.com/</link>
     <description>Recent content on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 11 Mar 2020 21:05:17 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 30 Mar 2020 22:17:34 +0800</lastBuildDate>
     
         <atom:link href="http://auntlei.com/index.xml" rel="self" type="application/rss+xml" />
     
@@ -27,6 +27,426 @@
 &lt;/ul&gt;
 &lt;p&gt;Learn more and contribute on &lt;a href=&#34;https://github.com/gohugoio&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
 </description>
+      
+    </item>
+    
+    <item>
+      <title>golang新手可能踩的坑</title>
+      <link>http://auntlei.com/post/golang/more-effective-go/</link>
+      <pubDate>Mon, 30 Mar 2020 22:17:34 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/golang/more-effective-go/</guid>
+      
+        <description>&lt;p&gt;写出地道的golang风格的代码，官方文档&lt;a href=&#34;https://golang.org/doc/effective_go.html#pointers_vs_values&#34;&gt;Effective GO&lt;/a&gt;、&lt;a href=&#34;https://github.com/golang/go/wiki/CodeReviewComments&#34;&gt;Go Code Review Comments&lt;/a&gt;介绍得很详细，而且很多大厂也有自己内部的风格，在这里就不一一赘述。本文只关注可能引入bug或者性能下降的错误写法，及一些最佳实践。为方便查看，每个tip作为一个小标题单独列出。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;虽然不涵盖编程风格，但是强烈建议读者使用gofmt，并且打开IDE的lint功能，多次按照lint提示修改代码之后，最终自然而然就会写出符合golang风格的代码&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;defer&#34;&gt;defer&lt;/h2&gt;
+&lt;h3 id=&#34;defer-lifodefer&#34;&gt;defer 执行循序为LIFO，参数的值在defer语句执行时就已经确定。&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+    &lt;span class=&#34;k&#34;&gt;defer&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Printf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;%d &amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;输出&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;4 3 2 1 0 
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;deldefer--defer-mutexunlock-mutexunlockdel&#34;&gt;&lt;!-- raw HTML omitted --&gt;defer 并不是免费的。比如 defer Mutex.Unlock 比直接Mutex.Unlock开销更大&lt;!-- raw HTML omitted --&gt;&lt;/h3&gt;
+&lt;p&gt;对于一些简短的加锁-修改某个值-释放锁的操作可以做么做。但是如果在加锁之后，可能在不同的分支都需要执行释放锁，还是建议直接使用defer Mutex.Unlock， 否则在（以后）修改或者新增分支的时候可能忘记释放锁从而引入bug。除非必要，应该&lt;strong&gt;以代码的可维护性为主&lt;/strong&gt;。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;unlockDefer&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;sync&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Mutex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Lock&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;rand&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;defer&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Unlock&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;unlockDirect&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;sync&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Mutex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Lock&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;rand&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Unlock&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;BenchmarkUnlockDefer&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;sync&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Mutex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nf&#34;&gt;unlockDefer&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;BenchmarkUnlockDirect&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;sync&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Mutex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nf&#34;&gt;unlockDirect&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;pre&gt;&lt;code&gt;BenchmarkUnlockDefer-4          20000000                56.9 ns/op
+BenchmarkUnlockDirect-4         50000000                31.7 ns/op
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;slice-vs-array&#34;&gt;slice vs array&lt;/h2&gt;
+&lt;h3 id=&#34;array&#34;&gt;array的长度是类型的一部分&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;[3]int&lt;/code&gt; 和 &lt;code&gt;[4]int&lt;/code&gt; 是不同的类型&lt;/p&gt;
+&lt;h3 id=&#34;array-&#34;&gt;array 是传值的，值指的是整个数组的内容&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;modify&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;a&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;main&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;x&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;...&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nf&#34;&gt;modify&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;输出&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[3 2 1]
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;slice-&#34;&gt;slice 本质也是传值，但看起来像传递了底层数组的引用&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;golang 都是传值的&lt;/strong&gt;，slice看起来像是传引用是因为slice的值本身包含了一个对底层数组的引用（指针）。通过查看下面的slice结构体描述就很清晰。&lt;a href=&#34;https://golang.org/src/runtime/slice.go&#34;&gt;src/runtime/slice.go&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;type slice struct {
+	array unsafe.Pointer
+	len   int
+	cap   int
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;slice-mapkeyslicearray&#34;&gt;slice 不能作为map对象的key，因为slice没有实现完全实现&lt;code&gt;==&lt;/code&gt;操作符，但是array可以。&lt;/h3&gt;
+&lt;p&gt;slice 只能使用&lt;code&gt;==&lt;/code&gt; 判断是否为nil。&lt;/p&gt;
+&lt;h2 id=&#34;slice-1&#34;&gt;slice 与内存模型&lt;/h2&gt;
+&lt;h3 id=&#34;append-&#34;&gt;append 不是线程安全的&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;s&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;
+	&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;wg&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;sync&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;WaitGroup&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;10&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;wg&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Add&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;go&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+			&lt;span class=&#34;nx&#34;&gt;s&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;append&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;s&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+			&lt;span class=&#34;nx&#34;&gt;wg&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Done&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;wg&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Wait&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;s&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;一种可能的输出：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[0 6 7 9]
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;axbyabsliceaxby&#34;&gt;a[x]与b[y]是否存在竟态，与a、b是否为同一slice无关，只与a[x]与b[y]是否指向同一块内存区域有关&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://golang.org/ref/spec#Variables&#34;&gt;golang language specification中关于variables的介绍&lt;/a&gt; 中有这样一句话&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;Structured&lt;/em&gt; variables of &lt;a href=&#34;https://golang.org/ref/spec#Array_types&#34;&gt;array&lt;/a&gt;, &lt;a href=&#34;https://golang.org/ref/spec#Slice_types&#34;&gt;slice&lt;/a&gt;, and &lt;a href=&#34;https://golang.org/ref/spec#Struct_types&#34;&gt;struct&lt;/a&gt; types have elements and fields that may be &lt;a href=&#34;https://golang.org/ref/spec#Address_operators&#34;&gt;addressed&lt;/a&gt; individually. Each such element acts like a variable.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;也就是说对于slice s而言，我们应该将s[i]看做是一个独立的变量（variable)。&lt;/p&gt;
+&lt;p&gt;例如，对于下面这段代码，虽然a、b是两个完全不同是slice，但是a[1]与b[0]指向了同一块内存区域，等同于同一个变量。如果对a[1]与b[0]的并发访问不做可见性保护（如加锁），那么可能在代码中出现并发bug。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;main&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;a&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;go&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;a&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;pre&gt;&lt;code&gt;go run -race ./
+2
+==================
+WARNING: DATA RACE
+Write at 0x00c0000a2008 by goroutine 6:
+  main.main.func1()
+      /Users/vicxiao/workspace/go/test/main.go:11 +0x47
+
+Previous read at 0x00c0000a2008 by main goroutine:
+  main.main()
+      /Users/vicxiao/workspace/go/test/main.go:13 +0xaa
+
+Goroutine 6 (running) created at:
+  main.main()
+      /Users/vicxiao/workspace/go/test/main.go:10 +0x98
+==================
+Found 1 data race(s)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;如果将第5行&lt;code&gt;a[1]=0&lt;/code&gt; 替换为&lt;code&gt;a[0]=0&lt;/code&gt;，那么因为a[0]与b[0]指向的是不同内存区域，就不会有竟态发生。&lt;/p&gt;
+&lt;h2 id=&#34;byte&#34;&gt;与[]byte相关的性能问题&lt;/h2&gt;
+&lt;h3 id=&#34;slice-gc&#34;&gt;slice 引用底层数组而造成内存泄露/GC压力&lt;/h3&gt;
+&lt;p&gt;例如，使用&lt;code&gt;ioutil.ReadAll&lt;/code&gt;读取了一个10M的文件，并将其前512K切片为另外一个slice b使用。只要b还被引用，那么其指向的底层数组也不会被释放。&lt;/p&gt;
+&lt;h3 id=&#34;copyappend&#34;&gt;复制数据时使用copy比append性能更优&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;29
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;30
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;31
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+	&lt;span class=&#34;s&#34;&gt;&amp;#34;crypto/rand&amp;#34;&lt;/span&gt;
+	&lt;span class=&#34;s&#34;&gt;&amp;#34;testing&amp;#34;&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;src&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;make&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;512&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;dst&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;make&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;512&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;genSource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;rand&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Read&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;src&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;BenchmarkCopy&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;StopTimer&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;nf&#34;&gt;genSource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;StartTimer&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;nb&#34;&gt;copy&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;dst&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;src&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;BenchmarkAppend&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;StopTimer&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;nf&#34;&gt;genSource&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;StartTimer&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;dst&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;append&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;dst&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;src&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;...&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;注：&lt;/p&gt;
+&lt;p&gt;dst作为全局变量是防止编译器优化for-loop&lt;/p&gt;
+&lt;p&gt;测试时，机器不繁忙&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;uptime;go version;go test -bench=. ./
+ 11:56:10 up 294 days, 14:58,  3 users,  load average: 0.58, 0.52, 0.63
+go version go1.14.1 linux/amd64
+goos: linux
+goarch: amd64
+pkg: copyvsappend
+BenchmarkCopy-40      	 9808320	       116 ns/op
+BenchmarkAppend-40    	  479055	      8740 ns/op
+PASS
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;readerreadfullioutilreadall&#34;&gt;如果知道Reader里的数据大小，使用&lt;code&gt;ReadFull&lt;/code&gt;而不是&lt;code&gt;ioutil.ReadAll&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;常见的场景如读取HTTP body。如果HTTP header中包含了&lt;code&gt;Content-Length&lt;/code&gt;那么我们先申请足够大小的内存，然后调用一次&lt;code&gt;io.ReadFull&lt;/code&gt; 是最佳的选择。如果我们使用&lt;code&gt;ioutil.ReadAll&lt;/code&gt; 则会发生多次不必要的内存申请和内存拷贝。因为&lt;code&gt;ReadAll&lt;/code&gt; 是以一个较小的buffer开始，不断地循环调用&lt;code&gt;ReadFull&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;channel&#34;&gt;channel&lt;/h2&gt;
+&lt;h3 id=&#34;groutine-channelsyncmutex&#34;&gt;当竞争很激烈时(groutine 大几千)，同样能保证线程安全，但是channel的性能会比sync.Mutex好？&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://stackoverflow.com/questions/57562606/why-does-sync-mutex-largely-drop-performance-when-goroutine-contention-is-more-t&#34;&gt;https://stackoverflow.com/questions/57562606/why-does-sync-mutex-largely-drop-performance-when-goroutine-contention-is-more-t&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;for-range&#34;&gt;for range&lt;/h2&gt;
+&lt;h3 id=&#34;range-&#34;&gt;如果每个元素比较大，循环时使用range 取值的方式遍历，性能较差&lt;/h3&gt;
+&lt;p&gt;这个比较直观，因为有很多内存拷贝&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;29
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;30
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;31
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;32
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;33
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;34
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;35
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;36
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;37
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;38
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;X&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;15&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+   &lt;span class=&#34;nx&#34;&gt;val&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;
+   &lt;span class=&#34;nx&#34;&gt;_&lt;/span&gt;   &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;4096&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;byte&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;Result&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;BenchmarkRangeIndex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+   &lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;
+   &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+      &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;range&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;X&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+         &lt;span class=&#34;nx&#34;&gt;x&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;X&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+         &lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;val&lt;/span&gt;
+      &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+   &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+   &lt;span class=&#34;nx&#34;&gt;Result&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;BenchmarkRangeValue&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+   &lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;
+   &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+      &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;_&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;x&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;range&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;X&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+         &lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;val&lt;/span&gt;
+      &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+   &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+   &lt;span class=&#34;nx&#34;&gt;Result&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;BenchmarkFor&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;B&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+   &lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;
+   &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+      &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;len&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;X&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;++&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+         &lt;span class=&#34;nx&#34;&gt;x&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;X&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
+         &lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;val&lt;/span&gt;
+      &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+   &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+   &lt;span class=&#34;nx&#34;&gt;Result&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;r&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;pre&gt;&lt;code&gt;BenchmarkRangeIndex-4              10000            127986 ns/op
+BenchmarkRangeValue-4                 50          25939345 ns/op
+BenchmarkFor-4                     10000            127817 ns/op
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;embeding&#34;&gt;embeding&lt;/h2&gt;
+&lt;h3 id=&#34;stttss&#34;&gt;如果类型S内嵌了T，如果T定义函数接受者都是&lt;code&gt;*T&lt;/code&gt;类型，那么S定义的函数也应该以&lt;code&gt;*S&lt;/code&gt;为接受者为佳&lt;/h3&gt;
+&lt;p&gt;这个主要是防止引入bug，例如下面的并发控制器，错误地在外层将接受者定义为值类型。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;type ConcurrentLocker struct{
+	sync.Map
+}
+
+type LeaveFunc func()
+
+func (cl ConcurrentLocker) Enter(key string) (bool, LeaveFunc) {
+	if _, occupied := cl.LoadOrStore(key, struct{}{}); !occupied {
+		return true, func(){
+			cl.Delete(key)
+		}
+	}
+	return false, nil
+}
+
+func main() {
+	cl := ConcurrentLocker{}
+	key := &amp;quot;some-key&amp;quot;
+	fmt.Println(cl.Enter(key))
+	fmt.Println(cl.Enter(key))
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;pre&gt;&lt;code&gt;$ go run ./
+true 0x10939e0
+true 0x10939e0
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;当然修复的办法可以是内嵌&lt;code&gt;* sync.Map&lt;/code&gt;, 但是这样初始化的时候不够优雅，还需要单独初始化内部的map指针。我个人更倾向于与将&lt;code&gt;Enter&lt;/code&gt; 的接受者申明为&lt;code&gt;* ConcurrentLocker&lt;/code&gt;, 这样既逻辑正确，其作为整体暴露的函数的接受者也统一。&lt;/p&gt;
+&lt;h2 id=&#34;heading&#34;&gt;参考资料&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://golang.org/doc/effective_go.html&#34;&gt;https://golang.org/doc/effective_go.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://golang.org/ref/mem&#34;&gt;https://golang.org/ref/mem&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://golang.org/ref/spec&#34;&gt;https://golang.org/ref/spec&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html&#34;&gt;https://dave.cheney.net/high-performance-go-workshop/gophercon-2019.html&lt;/a&gt;&lt;/p&gt;</description>
       
     </item>
     
@@ -92,18 +512,18 @@
       
         <description>&lt;h2 id=&#34;heading&#34;&gt;为什么要做定投？&lt;/h2&gt;
 &lt;p&gt;我目前投资方式比较简单，基本上以招商银行的定期理财为主，年化收益率&lt;strong&gt;接近4%&lt;/strong&gt;，剩余部分则是一些T+0或者T+1的货币基金，比如支付宝，收益更低&lt;strong&gt;不到3%&lt;/strong&gt;。而&lt;a href=&#34;https://www.ceicdata.com/zh-hans/indicator/china/consumer-price-index-cpi-growth&#34;&gt;2019-12 CPI已经高到4.5%&lt;/a&gt;，跑输了通胀。 决定要参入到股市之中，承担市场经济发展的风险，也享受相等的回报。之前短暂的做过短线，赶上大盘整体回升，收益还不错，也明显跑赢了大盘，但是需要的精力太多，目前看来没有足够的精力继续操作短线。想参入股市，那我目前的选择只能是投资基金。基金做短线，收益不大，因为我只参与指数基金，而指数基金的短期振幅不会很大，没有盈利空间。如果花时间挑选一些其它板块、主题的基金，找出振幅大的，那还不如花时间做个股的短线。综上我决定定投指数基金，作为一种长期的理财方式。&lt;/p&gt;
-&lt;h2 id=&#34;heading-1&#34;&gt;场内基金还是场外基金？&lt;/h2&gt;
+&lt;h2 id=&#34;heading1&#34;&gt;场内基金还是场外基金？&lt;/h2&gt;
 &lt;p&gt;为方便比较，找一个常见的沪深300类的场外基金做对比。&lt;/p&gt;
 &lt;p&gt;天弘沪深300ETF链接C， 买入费率0，管理费0.5%（每年），托管费0.1%（每年），销售服务费0.2%（每年），持有天数&amp;gt;7日则卖出费率为0，那么持有1年，3年，5年的大致费率为，0.8%，2.4%， 4%。&lt;/p&gt;
 &lt;p&gt;如果我们直接购买300ETF，假设每次定投金额小于1万，则收取5元的佣金（ETF只收取佣金，没有印花税、过户费之类），如果是1000元的ETF， 那么持有1年、3年、5年的费率大致为， 1%, 1%, 1%。如果一次购买约2000的ETF， 则费率降低至0.5%， 0.5%， 0.5%。&lt;/p&gt;
 &lt;p&gt;从上面的对比中可以看出&lt;strong&gt;直接购买ETF有明显的费率优势，这种优势会随着持有时间的增加和投资金额的增大而愈发明显&lt;/strong&gt;。既然我打算长期定投，那我肯定&lt;strong&gt;选择ETF&lt;/strong&gt;了。当然由于像股票一样，ETF的买卖单位是100份的整数倍，操作起来相对会麻烦一点。&lt;/p&gt;
-&lt;h2 id=&#34;heading-2&#34;&gt;定投方式与金额&lt;/h2&gt;
+&lt;h2 id=&#34;heading2&#34;&gt;定投方式与金额&lt;/h2&gt;
 &lt;p&gt;由于时间精力有限，并且计划长期定投，所以我决定只关注300ETF和500ETF。既然是投资，那么一定不能囫囵吞枣，更不能道听途说，一定要想明白什么情况下能赚钱，什么情况下亏损的可能性大。&lt;/p&gt;
 &lt;p&gt;投资赚钱的本质是&lt;strong&gt;低买高卖&lt;/strong&gt;。实际操作中的难点在于未来的不确定性。高和低是相对概念，没有绝对值可以参考，因为未来的不确定性、低买高卖就是一种博弈。是期望值和实际值之间的博弈，是一种赌博。&lt;/p&gt;
-&lt;h3 id=&#34;heading-3&#34;&gt;定投是怎么运作的，怎么选择定投目标，什么时候卖出？&lt;/h3&gt;
+&lt;h3 id=&#34;heading3&#34;&gt;定投是怎么运作的，怎么选择定投目标，什么时候卖出？&lt;/h3&gt;
 &lt;p&gt;定投最根本的假设是，&lt;strong&gt;市场是波动的&lt;/strong&gt;。通过定时定额（投资金额）的投资投资方式，在市价低时候多买入，而在市价高少买入，从而在整体上降低持仓成本，降低亏损的风险，当然利益相对最优解也会变少。&lt;strong&gt;可以这么理解，市场的振幅越大，定投的收益空间越大&lt;/strong&gt;。这个很好理解，如果市场毫无波澜，那么定投根本没有盈利空间，反而会亏损手续费，另外只要收益率低于银行定期存款的其实都是亏损。反之，假设市场是波动的，举个比较简单的具体例子，假设市价按照1、2、1、2这样周期性波动，那么定投的持仓成本就接近于1.5，只要市场保持波动，那么我们就有在市价为2的时候出手的机会，也就有盈利的机会。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;市场必然是波动的&lt;/strong&gt;，只要我们有耐心（对定投的这笔资金流动性要求不高），我们就能等到卖出价高于持仓成本的时机。当然这个前提你选的基本不能在你的投资周期内整体上程明显的下跌趋势。我们需要一个&lt;strong&gt;具有周期性&lt;/strong&gt;的基金来做定投，而指数基金就是一个不错的选择。&lt;em&gt;TODO：有空我会花的时间研究下其它的基金，说不定有同样具有稳定周期，但是周期性更短的基金&lt;/em&gt;。&lt;/p&gt;
-&lt;h3 id=&#34;heading-4&#34;&gt;上证综合指数变化&lt;/h3&gt;
+&lt;h3 id=&#34;heading4&#34;&gt;上证综合指数变化&lt;/h3&gt;
 &lt;p&gt;从2001年初到2019年底之间，出现了两个牛市。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200116133847.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;再看近几年，最高点在2015.06 为5178。这波牛市持续了半年，成交量大市场活跃。之后跳水，从2016.01至今没有太大波澜。2019年年初市场活跃了一波。&lt;/p&gt;
@@ -114,13 +534,13 @@
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119132608.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;500ETF&lt;/strong&gt;，似乎还很有空间。如果三年内从6.0升到9.0，持仓成本按照7.5计算的话，那么收益率为6.7%左右。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119132735.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading-5&#34;&gt;综上、具体操作方式&lt;/h3&gt;
-&lt;h4 id=&#34;heading-6&#34;&gt;买入&lt;/h4&gt;
+&lt;h3 id=&#34;heading5&#34;&gt;综上、具体操作方式&lt;/h3&gt;
+&lt;h4 id=&#34;heading6&#34;&gt;买入&lt;/h4&gt;
 &lt;p&gt;&lt;strong&gt;定投时间为发放工资的下个交易日&lt;/strong&gt;。&lt;/p&gt;
 &lt;p&gt;以500ETF为主，2k左右做“定投”。正常情况以成交价&amp;lt;=2k为界（基本上就是3手），如果价格低于5.8则买4手（稍大于2K）。 平时（非定投范围）如果遇到&amp;lt;5的情况，时情况加仓1~2手。
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119134608.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;300ETF不做定投，按月观察，如果市价＜3.7 （理想情况&amp;lt;3.5）视情况买入3手，单月最多投资一次。&lt;/p&gt;
-&lt;h4 id=&#34;heading-7&#34;&gt;卖出&lt;/h4&gt;
+&lt;h4 id=&#34;heading7&#34;&gt;卖出&lt;/h4&gt;
 &lt;p&gt;由于市场周期性的存在，我们需要在一个合适时间点将基金卖出，从而尽可能的实现利益最大化。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;300ETF&lt;/strong&gt;4.3是一个参考点。&lt;br&gt;
 &lt;strong&gt;500ETF&lt;/strong&gt;7.0， 8.0，9.0 三个参考点，要求年化&amp;gt;10%&lt;br&gt;
@@ -169,21 +589,7 @@
 &lt;li&gt;读写速度。&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;可以从&lt;a href=&#34;https://gist.github.com/jboner/2841832&#34;&gt;下表&lt;/a&gt;中大致知道HDD的性能与其它存储介质的差距。&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
-&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;Latency Comparison Numbers (~2012)
+&lt;pre&gt;&lt;code&gt;Latency Comparison Numbers (~2012)
 --------------------------
 Main memory reference                      100   ns
 Send 1 KB bytes over 1 Gbps network     10,000   ns       10 us
@@ -193,9 +599,7 @@ Read 1 MB sequentially from SSD*     1,000,000   ns    1,000 us    1 ms  ~1GB/se
 Disk seek                           10,000,000   ns   10,000 us   10 ms 
 Read 1 MB sequentially from 1 Gbps  10,000,000   ns   10,000 us   10 ms  40x memory, 10X SSD
 Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x memory, 30X SSD
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;寻址（含寻道）时间10ms，而连续读取1MB（以512B算，2K个扇区）的数据却只需要30ms。&lt;strong&gt;机械磁盘的平均寻道时间是不可忽略的&lt;/strong&gt;&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;寻址（含寻道）时间10ms，而连续读取1MB（以512B算，2K个扇区）的数据却只需要30ms。&lt;strong&gt;机械磁盘的平均寻道时间是不可忽略的&lt;/strong&gt;&lt;/p&gt;
 &lt;h3 id=&#34;linux&#34;&gt;Linux文件系统与文件查找&lt;/h3&gt;
 &lt;p&gt;提及Linux文件系统，必然绕不开VFS（Virtual Filesystem Switch）。VFS对下为不同具体的文件系统抽象出一套通用的数据结构和操作函数，对上为用户态应用层程序屏蔽底层文件系统的细节而使用一套通用的接口进行交互。注意，本问题及的文件系统均指非纯内存的文件系统，如ext2、nfs等，而类似procfs、sysfs、tmpfs这种纯内存文件系统不在本文的讨论范围，也不是haystack论文优化的对象。&lt;/p&gt;
 &lt;p&gt;VFS定义了四个基本对象，&lt;em&gt;superblock&lt;/em&gt;, &lt;em&gt;inode&lt;/em&gt;, &lt;em&gt;file&lt;/em&gt;, &lt;em&gt;dentry&lt;/em&gt;。其中：&lt;em&gt;superblock&lt;/em&gt; 用于描述&lt;strong&gt;文件系统&lt;/strong&gt;的元信息；&lt;em&gt;inode&lt;/em&gt; 用于描述&lt;strong&gt;文件&lt;/strong&gt;的元信息(如大小等）；&lt;em&gt;file&lt;/em&gt; 对象和具体进程关联，表示其&lt;strong&gt;打开&lt;/strong&gt;的一个文件和该进程关系（如打开方式、当前读写位置等）；&lt;em&gt;dentry&lt;/em&gt; 表示一个具体的目录项与实际文件的关系（指向某个_inode_）。这四者和进程间的关系如下图所示。
@@ -216,7 +620,7 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
 &lt;/ol&gt;
 &lt;p&gt;&lt;strong&gt;那么为什么CDN不能解决Facebook图片分发的问题？&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;按照haystack论文中所述，CDN中只缓存了少部分访问频繁的文件，而低频的访问数量巨大，如果将所有的文件都缓存进CDN，虽然理论可行但是成本过高不符合实际。这个现象也叫做&lt;a href=&#34;https://zh.wikipedia.org/wiki/%E9%95%BF%E5%B0%BE&#34;&gt;长尾效应&lt;/a&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading-1&#34;&gt;核心思想&lt;/h3&gt;
+&lt;h3 id=&#34;heading1&#34;&gt;核心思想&lt;/h3&gt;
 &lt;p&gt;在使用haystack之前，Facebook的图片系统使用如下图所示的架构，即若干图片服务器通过NFS的方式挂载了数个NAS存储。Facebook并没有公布其使用的NASA上具体的软件系统，不过从文章的描述来看，即使不能肯定这些NAS是Linux系统，也可以确定他们有类似上文描述的文件访问过程，即在读取文件内容之前需要先进行一次IO将对应的inode加载进内存之中。对于我们读者来说，这些NAS系统的细节我们并不需要关心，我们可以假设这些NAS就是一些Linux系统，这并不妨碍我们理解haystack的整体设计。
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200201185805.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h4 id=&#34;io&#34;&gt;读取一张图片，需要多少次IO操作？&lt;/h4&gt;
@@ -227,7 +631,7 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
 &lt;p&gt;假设文件存放在多级目录中，在查找文件时，路径中的每一项都需要别解析成一个dentry对象，如果没有被dcache缓存住，那么也需要从磁盘加载对应的inode，也就是需要一次IO操作。同时，如果目录下的文件太多，以至于有些文件存放到目录的二级甚至三级数据索引中，并且由于目录项的查找是简单的遍历，那么需要更多的IO操作。通过调整目录项的大小或者使用更先进的一些文件系统（一些采用b-tree的文件系统），文件查找需要的IO操作可能会更小，但是我们可以认为对于一个文件至一次以上的磁盘操作用于读取其inode。&lt;/p&gt;
 &lt;p&gt;我们知道哪怕仅仅是从磁盘读取一个扇区的数据，磁盘寻址时间也是一个不可忽略的开销。对于数据不大的图片而言，我们可以粗略认为有一半的额外开销都花在了读取文件的元信息之上。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;haystack的主要贡献也就是提出了一种将所有图片的元信息都缓存进内存，从而加速小文件读取的优化方法。&lt;/strong&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading-2&#34;&gt;架构&lt;/h3&gt;
+&lt;h3 id=&#34;heading2&#34;&gt;架构&lt;/h3&gt;
 &lt;p&gt;Haystack是一个分布式对象存储，主要包含三个模块：Directory、Cache和Storage。其中，Directory是一个元数据管理服务，Cache是数据缓存，而Storage是数据最终的存放地点。
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200202165747.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;（由于工作原因没有时间写细节了，以后如果再搞存储会回来补充完整。）&lt;/p&gt;
@@ -235,7 +639,7 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
 &lt;h4 id=&#34;directory&#34;&gt;Directory&lt;/h4&gt;
 &lt;h4 id=&#34;cache&#34;&gt;Cache&lt;/h4&gt;
 &lt;h2 id=&#34;10haystack&#34;&gt;过去10年了，haystack还适用吗？&lt;/h2&gt;
-&lt;h2 id=&#34;heading-3&#34;&gt;参考文献&lt;/h2&gt;
+&lt;h2 id=&#34;heading3&#34;&gt;参考文献&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;&lt;a href=&#34;https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf&#34;&gt;haystack&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;《Understanding the Linux kernel》&lt;/li&gt;
@@ -252,10 +656,10 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
       
         <description>&lt;h2 id=&#34;heading&#34;&gt;起因&lt;/h2&gt;
 &lt;p&gt;家里的WiFi总是过一点时间就会很卡，让人不爽！&lt;/p&gt;
-&lt;h3 id=&#34;heading-1&#34;&gt;网络布局&lt;/h3&gt;
+&lt;h3 id=&#34;heading1&#34;&gt;网络布局&lt;/h3&gt;
 &lt;p&gt;家里的网络布局和大多数普通家庭类似， 一个&lt;strong&gt;200M的电信宽带&lt;/strong&gt;接上一个路由器
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225233420.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading-2&#34;&gt;排障流程&lt;/h3&gt;
+&lt;h3 id=&#34;heading2&#34;&gt;排障流程&lt;/h3&gt;
 &lt;p&gt;从拓扑图看，设备接入互联网慢可能是两个组件有问题：电信光猫或者路由器。&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;路由器问题？&lt;/li&gt;
@@ -281,8 +685,8 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
 &lt;p&gt;两个方案都不可行。但是在电信的测速界面看到一个非常有趣的提醒，大意是“现在测速结果偏慢，但是要在重启网关之后才能保证测速准确哦”。试着重启了光猫后，还真有效！
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225235959.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;如果我们假设重启光猫后网速能回归正常，那问题转变成如何自动重启光猫&lt;/strong&gt;&lt;/p&gt;
-&lt;h2 id=&#34;heading-3&#34;&gt;通过路由器的剩余计算能力闲时自动重启光猫&lt;/h2&gt;
-&lt;h3 id=&#34;heading-4&#34;&gt;如何自动重启光猫&lt;/h3&gt;
+&lt;h2 id=&#34;heading3&#34;&gt;通过路由器的剩余计算能力闲时自动重启光猫&lt;/h2&gt;
+&lt;h3 id=&#34;heading4&#34;&gt;如何自动重启光猫&lt;/h3&gt;
 &lt;p&gt;&lt;strong&gt;家里的光猫可以通过web界面重启&lt;/strong&gt;， 那只需要抓包破解重启通信协议即可达成目标。&lt;/p&gt;
 &lt;p&gt;本文中的光猫管理界面如下图所示：
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225224609.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
@@ -315,18 +719,11 @@ curl &lt;span class=&#34;s1&#34;&gt;&amp;#39;http://192.168.1.1/gatewayManage.cm
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;执行后打印的http body如下，&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
-&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;{ &amp;#34;ID&amp;#34;: 123, &amp;#34;_Source&amp;#34;: 0, &amp;#34;Result&amp;#34;: 0, &amp;#34;return_Parameter&amp;#34;: &amp;#34;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;#34; }
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;其中 &lt;code&gt;return_Parameter&lt;/code&gt; base64解码后为&lt;code&gt;{ &amp;quot;CmdType&amp;quot;: &amp;quot;HG_COMMAND_REBOOT&amp;quot;, &amp;quot;SequenceId&amp;quot;: null, &amp;quot;Status&amp;quot;: &amp;quot;0&amp;quot; }&lt;/code&gt;。 根据经验，一般0表示执行成功。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;{ &amp;quot;ID&amp;quot;: 123, &amp;quot;_Source&amp;quot;: 0, &amp;quot;Result&amp;quot;: 0, &amp;quot;return_Parameter&amp;quot;: &amp;quot;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;quot; }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;其中 &lt;code&gt;return_Parameter&lt;/code&gt; base64解码后为&lt;code&gt;{ &amp;quot;CmdType&amp;quot;: &amp;quot;HG_COMMAND_REBOOT&amp;quot;, &amp;quot;SequenceId&amp;quot;: null, &amp;quot;Status&amp;quot;: &amp;quot;0&amp;quot; }&lt;/code&gt;。 根据经验，一般0表示执行成功。&lt;/p&gt;
 &lt;p&gt;执行后光猫的管理界面便不能打开，一小段时间之后才能再次反问。通过查看光猫的运行状态（运行时间），证实了刚才的重启是有效的！
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191226002901.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading-5&#34;&gt;如何通过路由器自动定时重启光猫？&lt;/h3&gt;
+&lt;h3 id=&#34;heading5&#34;&gt;如何通过路由器自动定时重启光猫？&lt;/h3&gt;
 &lt;p&gt;&lt;strong&gt;路由器&lt;/strong&gt;（注意不是光猫）可以ssh登录, 有一个精简的linux系统，有一整套的busybox。路由器也刷了梅林固件，当然也可以安装其他软件，甚至Python。解决方案多种多样，比如下面的shell 脚本。&lt;a href=&#34;https://www.shellscript.sh/&#34;&gt;shell 脚本教程&lt;/a&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
@@ -375,17 +772,9 @@ curl &lt;span class=&#34;s1&#34;&gt;&amp;#39;http://192.168.1.1/gatewayManage.cm
 &lt;li&gt;
 &lt;p&gt;脚本需要放到一个&lt;strong&gt;非临时存储&lt;/strong&gt;，注意不要保存在路由器的tmpfs&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
-&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;admin@RT-AC68P:/tmp/home/root# ls -l /root
+&lt;pre&gt;&lt;code&gt;admin@RT-AC68P:/tmp/home/root# ls -l /root
 lrwxrwxrwx    1 admin    root            13 Sep 21 14:13 /root -&amp;gt; tmp/home/root
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;/blockquote&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/blockquote&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;使用 &lt;code&gt;nohup&lt;/code&gt; 来保证脚本持续运行。 当然也可以研究下你的路由器支持哪种开机自动运行的能力(比如&lt;code&gt;/etc/init.d&lt;/code&gt;)&lt;/p&gt;
@@ -439,19 +828,10 @@ cru a rebootmodem &lt;span class=&#34;s2&#34;&gt;&amp;#34;0 4 * * * /jffs/script
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;&lt;strong&gt;最后附上次日清晨的日志文件内容，证明整个方案是可靠的&lt;/strong&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
-&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;admin@RT-AC68P:/tmp/home/root# cat /tmp/modem_reboot.log
+&lt;pre&gt;&lt;code&gt;admin@RT-AC68P:/tmp/home/root# cat /tmp/modem_reboot.log
 Sat Dec 28 04:00:01 GMT 2019
-{ &amp;#34;ID&amp;#34;: 123, &amp;#34;_Source&amp;#34;: 0, &amp;#34;Result&amp;#34;: 0, &amp;#34;return_Parameter&amp;#34;: &amp;#34;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;#34; }
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191228102807.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</description>
+{ &amp;quot;ID&amp;quot;: 123, &amp;quot;_Source&amp;quot;: 0, &amp;quot;Result&amp;quot;: 0, &amp;quot;return_Parameter&amp;quot;: &amp;quot;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;quot; }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191228102807.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</description>
       
     </item>
     
@@ -465,12 +845,12 @@ Sat Dec 28 04:00:01 GMT 2019
         <description>&lt;h2 id=&#34;heading&#34;&gt;协议特点&lt;/h2&gt;
 &lt;p&gt;简单地对IP协议进行了一层包裹，添加了源、目的地端口，从而支持了多路复用、多路分解. 协议本身没有流控测流和拥塞控制策略。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/udp-header.png&#34; alt=&#34;UDP 包头&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading-1&#34;&gt;好处&lt;/h3&gt;
+&lt;h3 id=&#34;heading1&#34;&gt;好处&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;首部小， UDP 8字节， TCP20字节&lt;/li&gt;
 &lt;li&gt;应用层能更加精确地控制发送数据的时间&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h3 id=&#34;heading-2&#34;&gt;缺点，使用注意事项&lt;/h3&gt;
+&lt;h3 id=&#34;heading2&#34;&gt;缺点，使用注意事项&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;不可靠。协议本身不保证应用层的数据，一定能完全达到目的地。但是每个UDP 包裹本身是数据是不会出错（UDP本身有校验和）&lt;/li&gt;
 &lt;li&gt;在网络上可能被很多节点的防火墙禁用掉&lt;/li&gt;

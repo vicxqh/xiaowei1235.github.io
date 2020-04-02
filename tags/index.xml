@@ -5,10 +5,19 @@
     <link>http://auntlei.com/tags/</link>
     <description>Recent content in Tags on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Mon, 20 Jan 2020 07:12:29 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 30 Mar 2020 22:17:34 +0800</lastBuildDate>
     
 	<atom:link href="http://auntlei.com/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>golang</title>
+      <link>http://auntlei.com/tags/golang/</link>
+      <pubDate>Mon, 30 Mar 2020 22:17:34 +0800</pubDate>
+      
+      <guid>http://auntlei.com/tags/golang/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>股市</title>
@@ -61,15 +70,6 @@
       <pubDate>Wed, 25 Dec 2019 22:47:46 +0800</pubDate>
       
       <guid>http://auntlei.com/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>golang</title>
-      <link>http://auntlei.com/tags/golang/</link>
-      <pubDate>Fri, 20 Dec 2019 13:26:45 +0800</pubDate>
-      
-      <guid>http://auntlei.com/tags/golang/</guid>
       <description></description>
     </item>
     
