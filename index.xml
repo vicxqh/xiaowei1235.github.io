@@ -5,7 +5,7 @@
     <link>http://auntlei.com/</link>
     <description>Recent content on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 02 Apr 2020 17:04:20 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 02 Apr 2020 17:07:20 +0800</lastBuildDate>
     
         <atom:link href="http://auntlei.com/index.xml" rel="self" type="application/rss+xml" />
     
@@ -31,11 +31,11 @@
     </item>
     
     <item>
-      <title>boltdb源码解析（一）—— 简介</title>
-      <link>http://auntlei.com/post/source/boltdb_1/</link>
-      <pubDate>Thu, 02 Apr 2020 17:04:20 +0800</pubDate>
+      <title>boltdb源码解析（四）—— ACID特性论证</title>
+      <link>http://auntlei.com/post/source/boltdb_4/</link>
+      <pubDate>Thu, 02 Apr 2020 17:07:20 +0800</pubDate>
       
-      <guid>http://auntlei.com/post/source/boltdb_1/</guid>
+      <guid>http://auntlei.com/post/source/boltdb_4/</guid>
       
         <description>&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_1/&#34;&gt;boltdb源码解析（一）—— 简介&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;介绍blotdb的使用，优势与注意事项，以及源码组织结构。&lt;/p&gt;
@@ -45,77 +45,42 @@
 &lt;p&gt;深入实现细节剖析CURD，及空闲页管理逻辑&lt;/p&gt;
 &lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_4/&#34;&gt;boltdb源码解析（四）—— ACID特性论证&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;分析、证明boltdb是如何保证ACID的四个重要特性&lt;/p&gt;
-&lt;h2 id=&#34;boltdb-&#34;&gt;boltdb 简介&lt;/h2&gt;
-&lt;h3 id=&#34;heading&#34;&gt;是什么&lt;/h3&gt;
-&lt;p&gt;boltdb是纯golang实现的一个键-值数据库，你可以在自己的程序中使用boltdb库创建/操作数据库。boltdb参考LMDB实现，代码简洁也非常适合学习数据库的实现。boltdb的原始库已经归档，coreOS维护的fork用于社区开发者持续迭代。&lt;/p&gt;
-&lt;h3 id=&#34;heading1&#34;&gt;怎么使用&lt;/h3&gt;
-&lt;p&gt;简单示例如下， 新建一个数据库文件&lt;code&gt;my.db&lt;/code&gt;、创建一个新桶&lt;code&gt;MyBucket&lt;/code&gt;， 并放入键值对： &lt;code&gt;&amp;quot;my-key&amp;quot;, &amp;quot;my-value&amp;quot;&lt;/code&gt;。&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
-&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;  &lt;span class=&#34;c1&#34;&gt;// Open the my.db data file in your current directory.
-&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// It will be created if it doesn&amp;#39;t exist.
-&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;db&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;bolt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Open&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;my.db&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mo&#34;&gt;0600&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-		&lt;span class=&#34;nx&#34;&gt;log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Fatal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
-	&lt;span class=&#34;k&#34;&gt;defer&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;db&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Close&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-
-	&lt;span class=&#34;nx&#34;&gt;db&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Update&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;tx&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;bolt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Tx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;error&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;tx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;CreateBucket&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;MyBucket&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-		&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
-			&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Errorf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;create bucket: %s&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-		&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
-		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Put&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;my-key&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;my-value&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-		&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;
-	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;更多的用法可以参考boltdb &lt;a href=&#34;https://github.com/boltdb/bolt#getting-started&#34;&gt;README&lt;/a&gt; 及godoc。&lt;/p&gt;
-&lt;h3 id=&#34;heading2&#34;&gt;适用场景&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;程序需要内嵌数据库&lt;/li&gt;
-&lt;li&gt;只需要简单的键值存储，不需要复杂的SQL查询与处理&lt;/li&gt;
-&lt;li&gt;数据读多于写&lt;/li&gt;
-&lt;li&gt;需要事务保证&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;有哪些项目使用了boltdb?&lt;/p&gt;
-&lt;p&gt;比如&lt;a href=&#34;https://influxdata.com/&#34;&gt;InfluxDB&lt;/a&gt;，&lt;a href=&#34;https://github.com/hashicorp/consul&#34;&gt;Consul&lt;/a&gt;，&lt;a href=&#34;https://github.com/chrislusf/seaweedfs&#34;&gt;Seaweed File System&lt;/a&gt;。目前还没有时间探索这些知名项目是如何使用boltdb的。&lt;/p&gt;
-&lt;h2 id=&#34;heading3&#34;&gt;源码组织结构&lt;/h2&gt;
-&lt;p&gt;只包含重要文件。golang通过编译标志支持多平台可以参考 &lt;a href=&#34;https://golang.org/pkg/go/build/&#34;&gt;go build&lt;/a&gt;&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;bolt_os_arch.go   // 含各操作系统、体系架构特殊syscall的实现
-bucket.go					// 数据库桶操作及持久化相关代码
-cursor.go					// 游标操作相关代码，用于定位读写位置
-db.go							// 数据库最顶层抽象
-freelist.go				// 空闲页管理逻辑
-node.go						// b+树节点相关操作
-page.go						// 物理页相关操作
-tx.go							// 事务相关操作
-&lt;/code&gt;&lt;/pre&gt;</description>
+&lt;p&gt;本篇将介绍事务过程中数据持久化顺序。介绍完持久化顺序之后，boltdb事务的ACID也就不言而喻了。&lt;/p&gt;
+&lt;h2 id=&#34;heading&#34;&gt;事务过程中，数据化持久顺序&lt;/h2&gt;
+&lt;p&gt;在介绍读写过程之前，需要简单提及下boltdb的一个特性&amp;ndash;物理文件按需增长。默认情况下boltdb在初始化时只申请最小空间（4个单位页），当数据增长时boltdb会相应增加物理文件，并重新mmap整个文件。因为golang 的&lt;code&gt;mmap&lt;/code&gt;不能指定map对象在程序虚拟地址空间（Virtual Address Space)内的偏移，重新mmap的对象可能和上次mmap的对象在虚拟地址上不一致，因此boltdb使用了一个读写锁来保护重新mmap的过程。重新map的过程中，因为写事务的inode在重新mmap之前指向的是原始页的偏移（相对拷贝整个key,value更节约内存)，因此在重新mmap的过程中需要解除写事物所有inode索引(即将inode中指向的key，value从原始页拷贝到非mmap区域——堆上）&lt;/p&gt;
+&lt;h3 id=&#34;heading1&#34;&gt;读&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412182736.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;heading2&#34;&gt;内存数据的一致性&lt;/h4&gt;
+&lt;p&gt;唯一可能造成内存中数据不一致的情景是用户函数出错。如果使用的是托管的事务（比如DB.View)而不是直接裸用Tx，那么boltdb通过golang的recover机制保证了事务的&lt;code&gt;Rollback&lt;/code&gt;一定会被调用。而Rollback会将此事务从数据库中的数据列表中删除。哪怕用户裸用Tx，最后不调用&lt;code&gt;Rollback&lt;/code&gt;，最差的后果也只是导致数据库中维护了大于两个版本的数据； 或者因为没有释放mmapLock而导致数据需要扩大文件大小时被阻塞而无法继续。这都不会造成内存数据的不一致。当然按照约定，用户需要调用Rollback&lt;/p&gt;
+&lt;h4 id=&#34;heading3&#34;&gt;数据文件的一致性&lt;/h4&gt;
+&lt;p&gt;因为读事务无法修改数据文件（任何修改操作都会出错），因此数据文件不会导致数据文件损坏。&lt;/p&gt;
+&lt;h3 id=&#34;heading4&#34;&gt;写&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412215052&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;heading5&#34;&gt;内存数据一致性&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;进入用户函数之前&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;因为有metalock的互斥锁保护，因此回收脏页而对数据库meta的修改并不会造成内存中数据不一致。&lt;strong&gt;注意freelist结构是内存中的结构，meta中只是保存了freelist持久化的坐在页的ID。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;进入用户函数之后&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;如果用户函数panic会进入rollback，或者用户主动调用&lt;code&gt;Rollback&lt;/code&gt;。虽然rollback过程中会重新读取文件中的freelist，但是和内存中的pending列表合并之后，实际上并不会改变freelist的内容。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;修改数据文件之前&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;平衡B+树和序列化当前freelist 修改的是虚拟页——堆（非mmap区域）的数据，因为meta没有更新，如果出错这部分数据不会被别的事务使用，因此也不会造成内存中数据的不一致。&lt;/p&gt;
+&lt;p&gt;虽然序列化事务修改后的freelist会将一些页标记成脏页，但是此时这些信息还没有被持久化，因此在rollback时将这些页从pending列表中删除之后，&lt;strong&gt;重读DB.meta指向的freelist页&lt;/strong&gt;恢复出来的freelist也是和进入事务之前是一致的。&lt;/p&gt;
+&lt;p&gt;修改数据文件之后，持久化元信息之前&lt;/p&gt;
+&lt;p&gt;和前面“修改数据文件之前”对内存中数据的影响没有区别，因为数据库的meta还没有更新&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;持久化元信息页之后&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;此时不会触发rollback过程，数据已经被正确更新。因为物理文件被正确更新，所以内存中的meta也是最新的了（MMAP_SHARED的保证)&lt;/p&gt;
+&lt;h4 id=&#34;heading6&#34;&gt;数据文件一致性&lt;/h4&gt;
+&lt;p&gt;修改数据文件就两个地方&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;持久化数据页之后&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;此时meta没有更新，因此在程序重启时，并不会访问到这些新写的内容&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;持久化元信息页之后&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;此时meta更新，程序重启恢复时访问的就是最新数据。&lt;/p&gt;</description>
       
     </item>
     
     <item>
       <title>boltdb源码解析（三）—— CURD实现细节</title>
       <link>http://auntlei.com/post/source/boltdb_3/</link>
-      <pubDate>Thu, 02 Apr 2020 17:04:20 +0800</pubDate>
+      <pubDate>Thu, 02 Apr 2020 17:06:20 +0800</pubDate>
       
       <guid>http://auntlei.com/post/source/boltdb_3/</guid>
       
@@ -219,7 +184,7 @@ tx.go							// 事务相关操作
     <item>
       <title>boltdb源码解析（二）—— 数据结构与核心算法</title>
       <link>http://auntlei.com/post/source/boltdb_2/</link>
-      <pubDate>Thu, 02 Apr 2020 17:04:20 +0800</pubDate>
+      <pubDate>Thu, 02 Apr 2020 17:05:20 +0800</pubDate>
       
       <guid>http://auntlei.com/post/source/boltdb_2/</guid>
       
@@ -358,11 +323,11 @@ tx.go							// 事务相关操作
     </item>
     
     <item>
-      <title>boltdb源码解析（四）—— ACID特性论证</title>
-      <link>http://auntlei.com/post/source/boltdb_4/</link>
+      <title>boltdb源码解析（一）—— 简介</title>
+      <link>http://auntlei.com/post/source/boltdb_1/</link>
       <pubDate>Thu, 02 Apr 2020 17:04:20 +0800</pubDate>
       
-      <guid>http://auntlei.com/post/source/boltdb_4/</guid>
+      <guid>http://auntlei.com/post/source/boltdb_1/</guid>
       
         <description>&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_1/&#34;&gt;boltdb源码解析（一）—— 简介&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;介绍blotdb的使用，优势与注意事项，以及源码组织结构。&lt;/p&gt;
@@ -372,35 +337,70 @@ tx.go							// 事务相关操作
 &lt;p&gt;深入实现细节剖析CURD，及空闲页管理逻辑&lt;/p&gt;
 &lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_4/&#34;&gt;boltdb源码解析（四）—— ACID特性论证&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;分析、证明boltdb是如何保证ACID的四个重要特性&lt;/p&gt;
-&lt;p&gt;本篇将介绍事务过程中数据持久化顺序。介绍完持久化顺序之后，boltdb事务的ACID也就不言而喻了。&lt;/p&gt;
-&lt;h2 id=&#34;heading&#34;&gt;事务过程中，数据化持久顺序&lt;/h2&gt;
-&lt;p&gt;在介绍读写过程之前，需要简单提及下boltdb的一个特性&amp;ndash;物理文件按需增长。默认情况下boltdb在初始化时只申请最小空间（4个单位页），当数据增长时boltdb会相应增加物理文件，并重新mmap整个文件。因为golang 的&lt;code&gt;mmap&lt;/code&gt;不能指定map对象在程序虚拟地址空间（Virtual Address Space)内的偏移，重新mmap的对象可能和上次mmap的对象在虚拟地址上不一致，因此boltdb使用了一个读写锁来保护重新mmap的过程。重新map的过程中，因为写事务的inode在重新mmap之前指向的是原始页的偏移（相对拷贝整个key,value更节约内存)，因此在重新mmap的过程中需要解除写事物所有inode索引(即将inode中指向的key，value从原始页拷贝到非mmap区域——堆上）&lt;/p&gt;
-&lt;h3 id=&#34;heading1&#34;&gt;读&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412182736.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h4 id=&#34;heading2&#34;&gt;内存数据的一致性&lt;/h4&gt;
-&lt;p&gt;唯一可能造成内存中数据不一致的情景是用户函数出错。如果使用的是托管的事务（比如DB.View)而不是直接裸用Tx，那么boltdb通过golang的recover机制保证了事务的&lt;code&gt;Rollback&lt;/code&gt;一定会被调用。而Rollback会将此事务从数据库中的数据列表中删除。哪怕用户裸用Tx，最后不调用&lt;code&gt;Rollback&lt;/code&gt;，最差的后果也只是导致数据库中维护了大于两个版本的数据； 或者因为没有释放mmapLock而导致数据需要扩大文件大小时被阻塞而无法继续。这都不会造成内存数据的不一致。当然按照约定，用户需要调用Rollback&lt;/p&gt;
-&lt;h4 id=&#34;heading3&#34;&gt;数据文件的一致性&lt;/h4&gt;
-&lt;p&gt;因为读事务无法修改数据文件（任何修改操作都会出错），因此数据文件不会导致数据文件损坏。&lt;/p&gt;
-&lt;h3 id=&#34;heading4&#34;&gt;写&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412215052&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h4 id=&#34;heading5&#34;&gt;内存数据一致性&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;进入用户函数之前&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;因为有metalock的互斥锁保护，因此回收脏页而对数据库meta的修改并不会造成内存中数据不一致。&lt;strong&gt;注意freelist结构是内存中的结构，meta中只是保存了freelist持久化的坐在页的ID。&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;进入用户函数之后&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;如果用户函数panic会进入rollback，或者用户主动调用&lt;code&gt;Rollback&lt;/code&gt;。虽然rollback过程中会重新读取文件中的freelist，但是和内存中的pending列表合并之后，实际上并不会改变freelist的内容。&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;修改数据文件之前&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;平衡B+树和序列化当前freelist 修改的是虚拟页——堆（非mmap区域）的数据，因为meta没有更新，如果出错这部分数据不会被别的事务使用，因此也不会造成内存中数据的不一致。&lt;/p&gt;
-&lt;p&gt;虽然序列化事务修改后的freelist会将一些页标记成脏页，但是此时这些信息还没有被持久化，因此在rollback时将这些页从pending列表中删除之后，&lt;strong&gt;重读DB.meta指向的freelist页&lt;/strong&gt;恢复出来的freelist也是和进入事务之前是一致的。&lt;/p&gt;
-&lt;p&gt;修改数据文件之后，持久化元信息之前&lt;/p&gt;
-&lt;p&gt;和前面“修改数据文件之前”对内存中数据的影响没有区别，因为数据库的meta还没有更新&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;持久化元信息页之后&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;此时不会触发rollback过程，数据已经被正确更新。因为物理文件被正确更新，所以内存中的meta也是最新的了（MMAP_SHARED的保证)&lt;/p&gt;
-&lt;h4 id=&#34;heading6&#34;&gt;数据文件一致性&lt;/h4&gt;
-&lt;p&gt;修改数据文件就两个地方&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;持久化数据页之后&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;此时meta没有更新，因此在程序重启时，并不会访问到这些新写的内容&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;持久化元信息页之后&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;此时meta更新，程序重启恢复时访问的就是最新数据。&lt;/p&gt;</description>
+&lt;h2 id=&#34;boltdb-&#34;&gt;boltdb 简介&lt;/h2&gt;
+&lt;h3 id=&#34;heading&#34;&gt;是什么&lt;/h3&gt;
+&lt;p&gt;boltdb是纯golang实现的一个键-值数据库，你可以在自己的程序中使用boltdb库创建/操作数据库。boltdb参考LMDB实现，代码简洁也非常适合学习数据库的实现。boltdb的原始库已经归档，coreOS维护的fork用于社区开发者持续迭代。&lt;/p&gt;
+&lt;h3 id=&#34;heading1&#34;&gt;怎么使用&lt;/h3&gt;
+&lt;p&gt;简单示例如下， 新建一个数据库文件&lt;code&gt;my.db&lt;/code&gt;、创建一个新桶&lt;code&gt;MyBucket&lt;/code&gt;， 并放入键值对： &lt;code&gt;&amp;quot;my-key&amp;quot;, &amp;quot;my-value&amp;quot;&lt;/code&gt;。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;  &lt;span class=&#34;c1&#34;&gt;// Open the my.db data file in your current directory.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// It will be created if it doesn&amp;#39;t exist.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;db&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;bolt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Open&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;my.db&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mo&#34;&gt;0600&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Fatal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;defer&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;db&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Close&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+	&lt;span class=&#34;nx&#34;&gt;db&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Update&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;tx&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;bolt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Tx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;error&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;tx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;CreateBucket&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;MyBucket&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+			&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Errorf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;create bucket: %s&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Put&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;my-key&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;my-value&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;更多的用法可以参考boltdb &lt;a href=&#34;https://github.com/boltdb/bolt#getting-started&#34;&gt;README&lt;/a&gt; 及godoc。&lt;/p&gt;
+&lt;h3 id=&#34;heading2&#34;&gt;适用场景&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;程序需要内嵌数据库&lt;/li&gt;
+&lt;li&gt;只需要简单的键值存储，不需要复杂的SQL查询与处理&lt;/li&gt;
+&lt;li&gt;数据读多于写&lt;/li&gt;
+&lt;li&gt;需要事务保证&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;有哪些项目使用了boltdb?&lt;/p&gt;
+&lt;p&gt;比如&lt;a href=&#34;https://influxdata.com/&#34;&gt;InfluxDB&lt;/a&gt;，&lt;a href=&#34;https://github.com/hashicorp/consul&#34;&gt;Consul&lt;/a&gt;，&lt;a href=&#34;https://github.com/chrislusf/seaweedfs&#34;&gt;Seaweed File System&lt;/a&gt;。目前还没有时间探索这些知名项目是如何使用boltdb的。&lt;/p&gt;
+&lt;h2 id=&#34;heading3&#34;&gt;源码组织结构&lt;/h2&gt;
+&lt;p&gt;只包含重要文件。golang通过编译标志支持多平台可以参考 &lt;a href=&#34;https://golang.org/pkg/go/build/&#34;&gt;go build&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;bolt_os_arch.go   // 含各操作系统、体系架构特殊syscall的实现
+bucket.go					// 数据库桶操作及持久化相关代码
+cursor.go					// 游标操作相关代码，用于定位读写位置
+db.go							// 数据库最顶层抽象
+freelist.go				// 空闲页管理逻辑
+node.go						// b+树节点相关操作
+page.go						// 物理页相关操作
+tx.go							// 事务相关操作
+&lt;/code&gt;&lt;/pre&gt;</description>
       
     </item>
     
