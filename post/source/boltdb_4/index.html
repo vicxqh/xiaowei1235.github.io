@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>标签 - 萧七海的博客</title>
+  <title>boltdb源码解析（四）—— ACID特性论证 - 萧七海的博客</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,7 +23,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="萧七海" />
-  <meta name="description" content="记录和分享" />
+  <meta name="description" content="" />
+
   <meta name="keywords" content="Hugo, theme, jane, 萧七海, 博客, 技术, IT, 分布式, 存储" />
 
 
@@ -34,8 +35,8 @@
 <meta name="generator" content="Hugo 0.60.1" />
 
 
-<link rel="canonical" href="http://auntlei.com/tags/" />
-<link href="/tags/index.xml" rel="alternate" type="application/rss+xml" title="萧七海的博客" />
+<link rel="canonical" href="http://auntlei.com/post/source/boltdb_4/" />
+
 
 
 
@@ -58,15 +59,23 @@
 
 
 
-<meta property="og:title" content="Tags" />
-<meta property="og:description" content="记录和分享" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="http://auntlei.com/tags/" />
-<meta property="og:updated_time" content="2020-04-02T17:04:20+08:00" />
-<meta itemprop="name" content="Tags">
-<meta itemprop="description" content="记录和分享"><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Tags"/>
-<meta name="twitter:description" content="记录和分享"/>
+<meta property="og:title" content="boltdb源码解析（四）—— ACID特性论证" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://auntlei.com/post/source/boltdb_4/" />
+<meta property="article:published_time" content="2020-04-02T17:04:20+08:00" />
+<meta property="article:modified_time" content="2020-04-02T17:04:20+08:00" />
+<meta itemprop="name" content="boltdb源码解析（四）—— ACID特性论证">
+<meta itemprop="description" content="">
+<meta itemprop="datePublished" content="2020-04-02T17:04:20&#43;08:00" />
+<meta itemprop="dateModified" content="2020-04-02T17:04:20&#43;08:00" />
+<meta itemprop="wordCount" content="1618">
+
+
+
+<meta itemprop="keywords" content="golang,boltdb," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="boltdb源码解析（四）—— ACID特性论证"/>
+<meta name="twitter:description" content=""/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -236,7 +245,7 @@
 
       </li>
     
-        <li class="menu-item active">
+        <li class="menu-item">
         
           
           
@@ -283,133 +292,174 @@
     <main id="main" class="main bg-llight">
       <div class="content-wrapper">
         <div id="content" class="content container">
-          
-  
-  
-  
-  
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">boltdb源码解析（四）—— ACID特性论证</h1>
+      
+      <div class="post-meta">
+        <time datetime="2020-04-02" class="post-time">
+          2020-04-02
+        </time>
+        <div class="post-category">
+            <a href="http://auntlei.com/categories/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/"> 源码阅读 </a>
+            
+          </div>
+        
 
-  
-  
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    <div class="tag-cloud" style="padding: 5px 15px">
-      <div class="tag-cloud-title">
-        共计 9 个标签
+        
+        
+
+        
+        
       </div>
-      <div class="tag-cloud-tags">
-      
-        
-        
-        
-        
-        
-        
-        
-        <a href="http://auntlei.com/tags/boltdb/"
-          style="font-size:2.0686215613240666rem">boltdb</a>
-        
-      
-        
-        
-        
-        
-        
-        
-        
-        <a href="http://auntlei.com/tags/golang/"
-          style="font-size:2.381173331742403rem">golang</a>
-        
-      
-        
-        
-        
-        
-        
-        
-        
-        <a href="http://auntlei.com/tags/%E5%88%86%E5%B8%83%E5%BC%8F/"
-          style="font-size:1rem">分布式</a>
-        
-      
-        
-        
-        
-        
-        
-        
-        
-        <a href="http://auntlei.com/tags/%E5%AD%98%E5%82%A8/"
-          style="font-size:1rem">存储</a>
-        
-      
-        
-        
-        
-        
-        
-        
-        
-        <a href="http://auntlei.com/tags/%E6%8A%93%E5%8C%85/"
-          style="font-size:1rem">抓包</a>
-        
-      
-        
-        
-        
-        
-        
-        
-        
-        <a href="http://auntlei.com/tags/%E7%BB%8F%E5%85%B8%E8%AE%BA%E6%96%87/"
-          style="font-size:1rem">经典论文</a>
-        
-      
-        
-        
-        
-        
-        
-        
-        
-        <a href="http://auntlei.com/tags/%E7%BD%91%E7%BB%9C/"
-          style="font-size:1rem">网络</a>
-        
-      
-        
-        
-        
-        
-        
-        
-        
-        <a href="http://auntlei.com/tags/%E8%82%A1%E5%B8%82/"
-          style="font-size:1rem">股市</a>
-        
-      
-        
-        
-        
-        
-        
-        
-        
-        <a href="http://auntlei.com/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/"
-          style="font-size:1rem">路由器</a>
-        
-      
-      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#heading">事务过程中，数据化持久顺序</a>
+      <ul>
+        <li><a href="#heading1">读</a></li>
+        <li><a href="#heading4">写</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p><a href="http://auntlei.com/post/source/boltdb_1/">boltdb源码解析（一）—— 简介</a></p>
+<p>介绍blotdb的使用，优势与注意事项，以及源码组织结构。</p>
+<p><a href="http://auntlei.com/post/source/boltdb_2/">boltdb源码解析（二）—— 数据结构与核心算法</a></p>
+<p>介绍核心数据结构，数据持久化到文件的物理布局，与核心算法介绍。</p>
+<p><a href="http://auntlei.com/post/source/boltdb_3/">boltdb源码解析（三）—— CURD实现细节</a></p>
+<p>深入实现细节剖析CURD，及空闲页管理逻辑</p>
+<p><a href="http://auntlei.com/post/source/boltdb_4/">boltdb源码解析（四）—— ACID特性论证</a></p>
+<p>分析、证明boltdb是如何保证ACID的四个重要特性</p>
+<p>本篇将介绍事务过程中数据持久化顺序。介绍完持久化顺序之后，boltdb事务的ACID也就不言而喻了。</p>
+<h2 id="heading">事务过程中，数据化持久顺序</h2>
+<p>在介绍读写过程之前，需要简单提及下boltdb的一个特性&ndash;物理文件按需增长。默认情况下boltdb在初始化时只申请最小空间（4个单位页），当数据增长时boltdb会相应增加物理文件，并重新mmap整个文件。因为golang 的<code>mmap</code>不能指定map对象在程序虚拟地址空间（Virtual Address Space)内的偏移，重新mmap的对象可能和上次mmap的对象在虚拟地址上不一致，因此boltdb使用了一个读写锁来保护重新mmap的过程。重新map的过程中，因为写事务的inode在重新mmap之前指向的是原始页的偏移（相对拷贝整个key,value更节约内存)，因此在重新mmap的过程中需要解除写事物所有inode索引(即将inode中指向的key，value从原始页拷贝到非mmap区域——堆上）</p>
+<h3 id="heading1">读</h3>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412182736.png" alt=""></p>
+<h4 id="heading2">内存数据的一致性</h4>
+<p>唯一可能造成内存中数据不一致的情景是用户函数出错。如果使用的是托管的事务（比如DB.View)而不是直接裸用Tx，那么boltdb通过golang的recover机制保证了事务的<code>Rollback</code>一定会被调用。而Rollback会将此事务从数据库中的数据列表中删除。哪怕用户裸用Tx，最后不调用<code>Rollback</code>，最差的后果也只是导致数据库中维护了大于两个版本的数据； 或者因为没有释放mmapLock而导致数据需要扩大文件大小时被阻塞而无法继续。这都不会造成内存数据的不一致。当然按照约定，用户需要调用Rollback</p>
+<h4 id="heading3">数据文件的一致性</h4>
+<p>因为读事务无法修改数据文件（任何修改操作都会出错），因此数据文件不会导致数据文件损坏。</p>
+<h3 id="heading4">写</h3>
+<p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412215052" alt=""></p>
+<h4 id="heading5">内存数据一致性</h4>
+<p><strong>进入用户函数之前</strong></p>
+<p>因为有metalock的互斥锁保护，因此回收脏页而对数据库meta的修改并不会造成内存中数据不一致。<strong>注意freelist结构是内存中的结构，meta中只是保存了freelist持久化的坐在页的ID。</strong></p>
+<p><strong>进入用户函数之后</strong></p>
+<p>如果用户函数panic会进入rollback，或者用户主动调用<code>Rollback</code>。虽然rollback过程中会重新读取文件中的freelist，但是和内存中的pending列表合并之后，实际上并不会改变freelist的内容。</p>
+<p><strong>修改数据文件之前</strong></p>
+<p>平衡B+树和序列化当前freelist 修改的是虚拟页——堆（非mmap区域）的数据，因为meta没有更新，如果出错这部分数据不会被别的事务使用，因此也不会造成内存中数据的不一致。</p>
+<p>虽然序列化事务修改后的freelist会将一些页标记成脏页，但是此时这些信息还没有被持久化，因此在rollback时将这些页从pending列表中删除之后，<strong>重读DB.meta指向的freelist页</strong>恢复出来的freelist也是和进入事务之前是一致的。</p>
+<p>修改数据文件之后，持久化元信息之前</p>
+<p>和前面“修改数据文件之前”对内存中数据的影响没有区别，因为数据库的meta还没有更新</p>
+<p><strong>持久化元信息页之后</strong></p>
+<p>此时不会触发rollback过程，数据已经被正确更新。因为物理文件被正确更新，所以内存中的meta也是最新的了（MMAP_SHARED的保证)</p>
+<h4 id="heading6">数据文件一致性</h4>
+<p>修改数据文件就两个地方</p>
+<p><strong>持久化数据页之后</strong></p>
+<p>此时meta没有更新，因此在程序重启时，并不会访问到这些新写的内容</p>
+<p><strong>持久化元信息页之后</strong></p>
+<p>此时meta更新，程序重启恢复时访问的就是最新数据。</p>
     </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">萧七海</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+      2020-04-02
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://auntlei.com/tags/golang/">golang</a>
+          <a href="http://auntlei.com/tags/boltdb/">boltdb</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/source/boltdb_2/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">boltdb源码解析（二）—— 数据结构与核心算法</span>
+            <span class="prev-text nav-mobile">上一篇</span>
+          </a>
+        
+          <a class="next" href="/post/golang/more-effective-go/">
+            <span class="next-text nav-default">golang新手可能踩的坑</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
   
   
 
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+    
+
+  
 
         </div>
       </div>

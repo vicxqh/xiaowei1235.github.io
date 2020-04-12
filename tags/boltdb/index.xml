@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>golang on 萧七海的博客</title>
-    <link>http://auntlei.com/tags/golang/</link>
-    <description>Recent content in golang on 萧七海的博客</description>
+    <title>boltdb on 萧七海的博客</title>
+    <link>http://auntlei.com/tags/boltdb/</link>
+    <description>Recent content in boltdb on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <lastBuildDate>Thu, 02 Apr 2020 17:04:20 +0800</lastBuildDate>
     
-	<atom:link href="http://auntlei.com/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://auntlei.com/tags/boltdb/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -43,24 +43,6 @@
       <pubDate>Thu, 02 Apr 2020 17:04:20 +0800</pubDate>
       
       <guid>http://auntlei.com/post/source/boltdb_4/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>golang新手可能踩的坑</title>
-      <link>http://auntlei.com/post/golang/more-effective-go/</link>
-      <pubDate>Mon, 30 Mar 2020 22:17:34 +0800</pubDate>
-      
-      <guid>http://auntlei.com/post/golang/more-effective-go/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>golang UDP 服务端实现</title>
-      <link>http://auntlei.com/post/net/udp/</link>
-      <pubDate>Fri, 20 Dec 2019 13:26:45 +0800</pubDate>
-      
-      <guid>http://auntlei.com/post/net/udp/</guid>
       <description></description>
     </item>
     

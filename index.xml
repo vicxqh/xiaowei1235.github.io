@@ -5,7 +5,7 @@
     <link>http://auntlei.com/</link>
     <description>Recent content on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Mon, 30 Mar 2020 22:17:34 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 02 Apr 2020 17:04:20 +0800</lastBuildDate>
     
         <atom:link href="http://auntlei.com/index.xml" rel="self" type="application/rss+xml" />
     
@@ -27,6 +27,380 @@
 &lt;/ul&gt;
 &lt;p&gt;Learn more and contribute on &lt;a href=&#34;https://github.com/gohugoio&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
 </description>
+      
+    </item>
+    
+    <item>
+      <title>boltdb源码解析（一）—— 简介</title>
+      <link>http://auntlei.com/post/source/boltdb_1/</link>
+      <pubDate>Thu, 02 Apr 2020 17:04:20 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/source/boltdb_1/</guid>
+      
+        <description>&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_1/&#34;&gt;boltdb源码解析（一）—— 简介&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;介绍blotdb的使用，优势与注意事项，以及源码组织结构。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_2/&#34;&gt;boltdb源码解析（二）—— 数据结构与核心算法&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;介绍核心数据结构，数据持久化到文件的物理布局，与核心算法介绍。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_3/&#34;&gt;boltdb源码解析（三）—— CURD实现细节&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;深入实现细节剖析CURD，及空闲页管理逻辑&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_4/&#34;&gt;boltdb源码解析（四）—— ACID特性论证&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;分析、证明boltdb是如何保证ACID的四个重要特性&lt;/p&gt;
+&lt;h2 id=&#34;boltdb-&#34;&gt;boltdb 简介&lt;/h2&gt;
+&lt;h3 id=&#34;heading&#34;&gt;是什么&lt;/h3&gt;
+&lt;p&gt;boltdb是纯golang实现的一个键-值数据库，你可以在自己的程序中使用boltdb库创建/操作数据库。boltdb参考LMDB实现，代码简洁也非常适合学习数据库的实现。boltdb的原始库已经归档，coreOS维护的fork用于社区开发者持续迭代。&lt;/p&gt;
+&lt;h3 id=&#34;heading1&#34;&gt;怎么使用&lt;/h3&gt;
+&lt;p&gt;简单示例如下， 新建一个数据库文件&lt;code&gt;my.db&lt;/code&gt;、创建一个新桶&lt;code&gt;MyBucket&lt;/code&gt;， 并放入键值对： &lt;code&gt;&amp;quot;my-key&amp;quot;, &amp;quot;my-value&amp;quot;&lt;/code&gt;。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;  &lt;span class=&#34;c1&#34;&gt;// Open the my.db data file in your current directory.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// It will be created if it doesn&amp;#39;t exist.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;db&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;bolt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Open&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;my.db&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mo&#34;&gt;0600&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Fatal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;defer&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;db&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Close&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+	&lt;span class=&#34;nx&#34;&gt;db&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Update&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;tx&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;bolt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Tx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;error&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;tx&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;CreateBucket&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;MyBucket&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+			&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Errorf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;create bucket: %s&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Put&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;my-key&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;my-value&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;更多的用法可以参考boltdb &lt;a href=&#34;https://github.com/boltdb/bolt#getting-started&#34;&gt;README&lt;/a&gt; 及godoc。&lt;/p&gt;
+&lt;h3 id=&#34;heading2&#34;&gt;适用场景&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;程序需要内嵌数据库&lt;/li&gt;
+&lt;li&gt;只需要简单的键值存储，不需要复杂的SQL查询与处理&lt;/li&gt;
+&lt;li&gt;数据读多于写&lt;/li&gt;
+&lt;li&gt;需要事务保证&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;有哪些项目使用了boltdb?&lt;/p&gt;
+&lt;p&gt;比如&lt;a href=&#34;https://influxdata.com/&#34;&gt;InfluxDB&lt;/a&gt;，&lt;a href=&#34;https://github.com/hashicorp/consul&#34;&gt;Consul&lt;/a&gt;，&lt;a href=&#34;https://github.com/chrislusf/seaweedfs&#34;&gt;Seaweed File System&lt;/a&gt;。目前还没有时间探索这些知名项目是如何使用boltdb的。&lt;/p&gt;
+&lt;h2 id=&#34;heading3&#34;&gt;源码组织结构&lt;/h2&gt;
+&lt;p&gt;只包含重要文件。golang通过编译标志支持多平台可以参考 &lt;a href=&#34;https://golang.org/pkg/go/build/&#34;&gt;go build&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;bolt_os_arch.go   // 含各操作系统、体系架构特殊syscall的实现
+bucket.go					// 数据库桶操作及持久化相关代码
+cursor.go					// 游标操作相关代码，用于定位读写位置
+db.go							// 数据库最顶层抽象
+freelist.go				// 空闲页管理逻辑
+node.go						// b+树节点相关操作
+page.go						// 物理页相关操作
+tx.go							// 事务相关操作
+&lt;/code&gt;&lt;/pre&gt;</description>
+      
+    </item>
+    
+    <item>
+      <title>boltdb源码解析（三）—— CURD实现细节</title>
+      <link>http://auntlei.com/post/source/boltdb_3/</link>
+      <pubDate>Thu, 02 Apr 2020 17:04:20 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/source/boltdb_3/</guid>
+      
+        <description>&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_1/&#34;&gt;boltdb源码解析（一）—— 简介&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;介绍blotdb的使用，优势与注意事项，以及源码组织结构。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_2/&#34;&gt;boltdb源码解析（二）—— 数据结构与核心算法&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;介绍核心数据结构，数据持久化到文件的物理布局，与核心算法介绍。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_3/&#34;&gt;boltdb源码解析（三）—— CURD实现细节&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;深入实现细节剖析CURD，及空闲页管理逻辑&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_4/&#34;&gt;boltdb源码解析（四）—— ACID特性论证&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;分析、证明boltdb是如何保证ACID的四个重要特性&lt;/p&gt;
+&lt;h2 id=&#34;b&#34;&gt;数据是如何以B+树的方式管理&lt;/h2&gt;
+&lt;p&gt;如前文所述，物理页一共有四种类型，其中branch和leaf类型的页分别对应B+树种的中间节点和叶子节点。和元信息页一样，branch和leaf的内容也都放在页的数据区。&lt;/p&gt;
+&lt;p&gt;关于B+树的定义，不同的教材有不同的定义。但是最本质的一点是一致的：所有数据（value）都只存放在叶子节点，并且所有叶子节点位于同一深度。&lt;/p&gt;
+&lt;p&gt;具体的，boltdb中的B+树抽象之后如如下图所示：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412131310.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;注： 图中数字代表key， 字母代表对应的值&lt;/p&gt;
+&lt;p&gt;可能和别的教材中的B+树不一样的地方在于：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;中间节点的键（key)， 是其子树第一个节点（包括叶子和中间节点）键&lt;/li&gt;
+&lt;li&gt;叶子节点之间没有指针将所有的数据串联成一个链表&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;branch&#34;&gt;branch（分支）页组织方式&lt;/h3&gt;
+&lt;p&gt;下图是一个中间节点序列化之后的结构&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412124533.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;其中：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;postiton&lt;/strong&gt; 表示此分支节点的key的相对与此元素起始地址的偏移&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;key size&lt;/strong&gt; key对应的字节数组长度&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;page id&lt;/strong&gt;  此分支节点的数据所在页ID&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;leaf&#34;&gt;leaf（叶子）页组织方式&lt;/h3&gt;
+&lt;p&gt;相应的，下图是叶子节点序列化之后的结构&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412132458.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;其中：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;flags&lt;/strong&gt; 表示表示此叶子节点对应的值类型。应为boltdb支持多层级的bucket，所以bucket也可能是值的一种类型，而另外一种类型就是字节数组。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;position&lt;/strong&gt; 键，值相对此节点的偏移&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;key size&lt;/strong&gt; 键长度&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;value size&lt;/strong&gt; 值长度&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;branchleaf-&#34;&gt;branch、leaf 节点与键值数据的物理布局关系&lt;/h3&gt;
+&lt;p&gt;这里只以leaf节点为例进行介绍，branch节点的组织方式同理。下图展示了有两个键值对（key-foo,value-foo 与 key-bar-long, value-bar-long）的物理结构。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412141501.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;页头&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;flags: 0x2表示此页是个叶子页，count：2表示一个有两个元素，而overflow：0表示此页的数据库没有向后溢出（当数据比较大时，可能会往后溢出）&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;数据区&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;在数据区，固定大小的元素（element）位于前，而变长的数据紧接元素之后。比如，上图中一共有两个元素，依次排列在数据区的起始位置。&lt;/p&gt;
+&lt;p&gt;以element-1为例说明&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;flags: 0x0 表示这个数据类型为普通的值（对应的0x1， 表示值的类型为bucket）&lt;/li&gt;
+&lt;li&gt;Positon: 16 表示element的边长值从相距&lt;strong&gt;此元素&lt;/strong&gt;的第16个byte开始（也就是偏移48）&lt;/li&gt;
+&lt;li&gt;key size, value size 对应的键值长度&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;bucket&#34;&gt;内联（多层级）bucket支持&lt;/h3&gt;
+&lt;p&gt;多层级的bucket支持很简单直观，只需要在value中保存bucket序列化之后的内容即可。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412144541.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;bucket1&#34;&gt;小bucket优化，虚拟页&lt;/h4&gt;
+&lt;p&gt;有时候bucket内的所有数据加起来都远小于一个单页大小。为优化此种情况的空间开销（实际上也能提升大量小bucket情境下的性能），boltdb实现了虚拟页。&lt;/p&gt;
+&lt;p&gt;当bucket的内容最够小时，bucket.root中不再保存页ID而是置零，同时将bucket的所有数据按照正常以页保存方式进行序列化之后拼接在bucket.sequence之后，如下图所示。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412151142.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;b1&#34;&gt;B+树的写时拷贝实现&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;注：这部分我们不介绍B+树在增加/删除节点的分裂/聚合这种重平衡（rebalance)的逻辑。这部分的逻辑和其他B+树无异，逻辑也不复杂，因此不再赘述。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;boltdb中对数据的所有操作都需要通过Cursor先定位数据在B+树中的位置，然后才能进行相关操作。而操作可分为读与写，写时拷贝指所有写操作必须发生在拷贝之上。我们再看看数据结构中和Cursor相关的部分&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412161742.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Cursor&lt;/strong&gt;, 代表当前操作位置。更为具体的，字段stack保存了从根到当前位置的路径，因此&lt;code&gt;stack[len(stack)-1]&lt;/code&gt;, 即路径中最后一个元素为当前操作对象。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;elemRef&lt;/code&gt;&lt;/strong&gt; 表示B+树中一个元素（节点或叶子）所在的页及元素位置。既然这样，那&lt;code&gt;page&lt;/code&gt;结构体就足够了，为什么还需要&lt;code&gt;node&lt;/code&gt;结构体呢？&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;node&lt;/code&gt;&lt;/strong&gt;结构体表示一个物理页反序列化之后在内存的表示。这里的内存指的是非mmap的空间。所有的改动都发生在&lt;code&gt;node&lt;/code&gt;之上，而&lt;code&gt;page&lt;/code&gt;只供读取。因为mmap使用的是&lt;code&gt;PROT_READ&lt;/code&gt;的保护策略，因此任何写&lt;code&gt;page&lt;/code&gt;的行为都将触发段错误，保证在实现写时拷贝逻辑的正确性。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;inode&lt;/code&gt;&lt;/strong&gt; 当node节点为叶子节点时，其子节点（叶子）的内容用inode表示，这里也只包含修改过的inode。 &lt;strong&gt;当叶子类型为bucket时，pgid保存了其所在页ID&lt;/strong&gt;。&lt;/p&gt;
+&lt;h2 id=&#34;heading&#34;&gt;空闲页管理&lt;/h2&gt;
+&lt;p&gt;空闲页的管理无非就是两个问题：识别脏页（空闲页）、回收（重用）脏页。&lt;/p&gt;
+&lt;h3 id=&#34;heading1&#34;&gt;怎么识别脏页（空闲页）&lt;/h3&gt;
+&lt;p&gt;再看node 与 &lt;code&gt;inode&lt;/code&gt;结构体，都包含了其反序列化而来的原始页ID。而这些页在事务提交时也就变成了脏页（新版本数据会写到新页中），&lt;strong&gt;但这些脏页并不会立即释放而是放进freelist的等待队列中&lt;/strong&gt;。之所以不立即释放是因为这些页还可能被其他读事务在访问。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412162002.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;heading2&#34;&gt;怎么回收空闲页&lt;/h3&gt;
+&lt;p&gt;前面提到了脏页可能不会立即释放，那么脏页什么时候释放呢？因为只有释放的脏页才能安全地进行重用。先看看freelist的数据结构，其不仅有已经完全释放的脏页（ids)，也有等待释放的事务极其对应的脏页列表（pending）。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;c1&#34;&gt;// freelist represents a list of all pages that are available for allocation.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// It also tracks pages that have been freed but are still in use by open transactions.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;type&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;freelist&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;ids&lt;/span&gt;     &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;pgid&lt;/span&gt;          &lt;span class=&#34;c1&#34;&gt;// all free and available free page ids.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;pending&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;map&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;txid&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;pgid&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// mapping of soon-to-be free page ids by tx.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;cache&lt;/span&gt;   &lt;span class=&#34;kd&#34;&gt;map&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;pgid&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;bool&lt;/span&gt;   &lt;span class=&#34;c1&#34;&gt;// fast lookup of all free and pending page ids.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;事务提交时，将其对应的脏页添列表加进freelist的等待队列集合中。而数据结构&lt;code&gt;DB&lt;/code&gt;中保存了所有正在进行中的事务ID。所有的写事务会递增ID，而读事务使用当前版本的ID（两个meta页中事务ID最大的一个）。因此，&lt;strong&gt;在创建新的写事物时，通过遍历DB中的所有事务，找出ID最小的minID, freelist的等待释放集合中任何小于minID的脏页列表都可以被安全释放&lt;/strong&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
+      <title>boltdb源码解析（二）—— 数据结构与核心算法</title>
+      <link>http://auntlei.com/post/source/boltdb_2/</link>
+      <pubDate>Thu, 02 Apr 2020 17:04:20 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/source/boltdb_2/</guid>
+      
+        <description>&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_1/&#34;&gt;boltdb源码解析（一）—— 简介&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;介绍blotdb的使用、优势与注意事项，以及源码组织结构。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_2/&#34;&gt;boltdb源码解析（二）—— 数据结构与核心算法&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;介绍核心数据结构，数据持久化到文件的物理布局，与核心算法介绍。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_3/&#34;&gt;boltdb源码解析（三）—— CURD实现细节&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;深入实现细节剖析CURD，及空闲页管理逻辑&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_4/&#34;&gt;boltdb源码解析（四）—— ACID特性论证&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;分析、证明boltdb是如何保证ACID的四个重要特性&lt;/p&gt;
+&lt;h2 id=&#34;lmdb-&#34;&gt;LMDB 核心思想&lt;/h2&gt;
+&lt;p&gt;boltdb源自于LMDB（&lt;a href=&#34;https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database&#34;&gt;Lightning Memory-Mapped Database&lt;/a&gt;），基本可以视作LMDB的golang实现。虽然两者存在细微差别（最明显的，在功能上LMDB支持多进程共享同一数据库而blotdb不能），但这并不影响以LMDB的视角来理解boltdb。LMDB的核心思想非常简单：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;使用mmap映射整个数据库文件，利用文件系统和操作系统的缓存来规避复杂的缓存管理。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用写时拷贝（copy on write)的b+树来更新数据，保证数据永远不会处于损坏状态，不需要WAL（Write Ahead Logging)以及对相应的数据恢复过程。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;通过和其他数据库作对比，我们能更好地理解这两个简单设计的初衷与优势。&lt;/p&gt;
+&lt;h3 id=&#34;heading&#34;&gt;性能（缓存）&lt;/h3&gt;
+&lt;p&gt;影响性能有很多方面，这里只讨论缓存设计，对于读写竞争不做介绍。下文会介绍写时拷贝b+树，而写时拷贝自然而然也就实现了&lt;a href=&#34;https://en.wikipedia.org/wiki/Multiversion_concurrency_control&#34;&gt;MVCC（Multiversion concurrency control&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;Howard Chu（LMDB作者）介绍在设计LMDB之前，他和其他人一样使用著名的&lt;a href=&#34;https://en.wikipedia.org/wiki/Berkeley_DB&#34;&gt;Berkeley DB（BDB）&lt;/a&gt;。但是BDB有三层缓存系统，对这套复杂系统进行调优需要花很多时间，并且可能造成一些意想不到的结果，比如数据库死锁，而LMDB使用mmap则不需要额外的缓存系统就可以带来理想的性能收益，数据库配置也变得更加简单。这也是核心思想中的第1点。&lt;/p&gt;
+&lt;p&gt;此外LMDB中mmap采用了只读方式，直接写内存中的数据会产生段错误（SEGV），这样的好处是在迭代开发的过程中，可以快速发现逻辑错误。那么怎么更新数据呢？blotdb采用的是直接写文件+fsync的方式。&lt;/p&gt;
+&lt;h3 id=&#34;heading1&#34;&gt;数据一致性&lt;/h3&gt;
+&lt;p&gt;性能只是数据库设计的一方面，另一方面是对事务ACID特性的保证。LMDB使用写时拷贝B+树，在介绍它之前，我们可以先了解下其它技术。&lt;/p&gt;
+&lt;h4 id=&#34;wal&#34;&gt;WAL&lt;/h4&gt;
+&lt;p&gt;BDB及其他数据库多使用&lt;a href=&#34;https://en.wikipedia.org/wiki/Write-ahead_logging&#34;&gt;WAL&lt;/a&gt;来保证数据的一致性。WAL是指描述改动的操作记录必须先被持久化到磁盘上之后，才能修改对应的值并提交整个事务。当数据处于不一致的状态时（比如处理事务过程中宕机后重启），可以通过回扫操作记录将数据库恢复到一个一致的状态。&lt;/p&gt;
+&lt;p&gt;下图描述了往一个空的key-value 数据库中&lt;code&gt;put(key-1,value-1)&lt;/code&gt;过程中WAL与数据修改之间的关系。注意这个只是概念演示，不同的数据库实现有不同的方式。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410133805.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;bappendonly-b-tree&#34;&gt;只追加B+树（append-only B+ tree）&lt;/h4&gt;
+&lt;p&gt;WAL的方式中数据和数据操作（日志）是分开的，而只追加B+树则不需要额外的日志。下面举例说明&lt;/p&gt;
+&lt;p&gt;假设现有一个三层B+树组织的数据&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410125417.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;其在磁盘上的布局是这样，其中块meta10是数据库的元信息所在。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410125604.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;当需要修改块叶子节点8（leaf 8）上的数据时，我们并不直接在原始块上做修改，而是对其做一份拷贝，在拷贝上进行修改。修改后，树变成了这样&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410130204.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;当然数据库的元信息也需要更新，并且更新也发生在拷贝之上。最后新增的内容都以追加的方式&lt;strong&gt;顺序写入磁盘&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410130652.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;从上图可以看出，此时数据库中实际上存在两个版本的数据。这极大地提升了数据库的并发性能，也保证了所有事务都能看到某一个一致的视图（虽然版本可能不一样）。虽然写入数据变多，但是对机械硬盘而言，顺序写的性能远优于随机读写，整体上性能依旧很好。&lt;/p&gt;
+&lt;p&gt;不过问题也很明显。如上所述，虽然我们仅仅需要修改块（leaf 8）的部分数据，我们最后却在磁盘上新增了4个块。如果我们不断地进行数据更新，那么最后数据库中将存在多个版本的内容，如下图所示：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410131640.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;事实上，几乎所有的应用场景中，我们都不需要维护过多的版本，因此数据库实现通常会有后台线程对将来不会使用的数据（即版本小于所有运行中事务的最低版本）进行垃圾回收。而垃圾回收势必会来带空间碎片，在回收的过程中也伴随着重排。重排需要移动大量的数据，因此会在一定程度降低数据库的性能，甚至在回收时增加响应时间。&lt;/p&gt;
+&lt;h4 id=&#34;blmdb&#34;&gt;写时拷贝B+树（LMDB方式）&lt;/h4&gt;
+&lt;p&gt;其实上文中的只追加B+树也是写时拷贝，和这里提到的LMDB的写时拷贝的B+树区别在于，LMDB数据库中只维护两个版本的数据，因此在任意时刻也就只能有一个写操作。与只追加B+树一样，都可以有“无限”个读，并且读-读与读-写之间不会存在竞争。&lt;/p&gt;
+&lt;p&gt;那么只维护两个版本有什么好处呢？&lt;/p&gt;
+&lt;p&gt;好处就是省去了繁琐的垃圾回收避免了因为垃圾回收而带来的性能下降。LMDB的写时拷贝B+树会优先使用被标记为空闲的块，而不是分配新的块。如下图所示：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410133143.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;同样，因为写操作不可并发，因此LMDB并不是真正的“MV&amp;quot;CC&lt;/p&gt;
+&lt;h2 id=&#34;boltdb&#34;&gt;boltdb实现&lt;/h2&gt;
+&lt;p&gt;和LMDB实现一样，boltdb的代码量也很小(&amp;lt;3K LOC），很适合作为了解数据库实现的起点。下图描述了boltdb的所有数据结构。按照golang 的语言约束，我们可以将这些数据结构拆分成对外输出的数据结构和内部数据结构。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412161542.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;注： 图中省略了很多不重要的字段，这些字段将在下文必要时进行补充说明。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;对外输出的数据结构
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;DB&lt;/strong&gt; 指代单个数据库，对应一个数据文件&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Tx&lt;/strong&gt;（事务，transaction)，数据的所有操作都应该在事务中进行&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Bucket&lt;/strong&gt;（桶），boltdb组织数据的基本方式。数据可以放到不同的桶中，并且桶也可以作为值内敛到外层的桶中。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Cursor&lt;/strong&gt;（游标），对桶内数据的查看修改需要通过游标来进行定位。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;内部数据结构
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;meta&lt;/strong&gt; 数据库的元信息。每个meta信息实际上对应一个数据库版本，和LMDB一致，boltdb只有两个版本。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;bucket&lt;/strong&gt; 对外暴露结构Bucket的持久化版，包含了Bucket所处的物理页ID及当前自增序列值&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;freelist&lt;/strong&gt; blotdb中所有空闲以及即将空闲页的管理器。后文会详细具体介绍空闲也的管理方式&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;page&lt;/strong&gt; boltdb管理存储的基本单位。后文介绍数据持久化时会对page进行更为详细地介绍。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;elemRef&lt;/strong&gt; 表示Cursor当前定位的数据。数据可能是一个B+树的中间节点，也可能是叶子节点。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;node&lt;/strong&gt; 表示page在内存中反序列化的结果，表示B+树的中间节点。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;inode&lt;/strong&gt; 便是node节点为叶子类型，inode表示其叶子。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;heading2&#34;&gt;数据持久化&lt;/h3&gt;
+&lt;h4 id=&#34;heading3&#34;&gt;数据结构&lt;/h4&gt;
+&lt;p&gt;这里不包括B+树相关的持久化方式，此部分在后续介绍B+树管理数据部分会详细介绍。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;page（页）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;bolt管理文件数据的基本单位，单位大小等同于操作系统页大小。包含头部（header) 与数据区（data)两部分。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410173920.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;id: 此页唯一标志，从0开始顺序递增&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;flags: 标记此页数据区存放的数据种类。有四种类型：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;meta: 数据库的元信息，整个数据库只有两张meta页，并且固定在文件的前两页&lt;/li&gt;
+&lt;li&gt;freelist: 空闲页列表&lt;/li&gt;
+&lt;li&gt;branch: b+ tree 中间节点&lt;/li&gt;
+&lt;li&gt;leaf：b+ tree 叶子节点 。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;count: 当数据区的数据是一个列表时，表示其长度。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;overflow: 数据是否“溢出”当前页。其值N表示，此页物理后继的N页大小的数据也是此页的数据。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下图展示了页中overflow和id之间的关系。页2向后溢出两个单位，页3、4作为页2的溢出页将不包含页头而只包含数据内容。页5的ID顺序递增为5而不是3。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410174229.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;meta（元信息）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;持久化时meta作为数据块写入元信息页中的数据区，页头中的flag标记位为0x4。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410175332.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;注： 图中的字段名不完全是源代码中的名称，而是用语义更丰富准确的短语替代。看源代码时能很容易进行关联&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;magic、version 魔数和版本号&lt;/li&gt;
+&lt;li&gt;page size  第一次数据持久化时操作系统的页大小。当从数据文件中恢复数据库时，boltdb需要知道以前的页大小才能正确地定位数据。&lt;/li&gt;
+&lt;li&gt;flags   保留字段&lt;/li&gt;
+&lt;li&gt;root   数据库最顶层的虚拟bucket。&lt;/li&gt;
+&lt;li&gt;freelist  用于存放空闲页列表（freelist）的物理页ID&lt;/li&gt;
+&lt;li&gt;max page id  此数据库可访问的最大页ID。主要用于检测逻辑错误，比如是否将数据写到了期望偏移之外。&lt;/li&gt;
+&lt;li&gt;trasaction id 最新的写事务的ID。用于追踪数据库最新版本。&lt;/li&gt;
+&lt;li&gt;checksum 以上字段的校验和。如果校验通过则可以确认当前meta page是一个正确的数据库元信息页，及其所指向的数据处于一致状态。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;bucket 的持久化结构如下图所示：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412144541.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;其中：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;root 此bucket根节点所在的页ID&lt;/li&gt;
+&lt;li&gt;sequence 用于实现单个bucket的自增序列&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;heading4&#34;&gt;物理布局&lt;/h4&gt;
+&lt;p&gt;其他使用只追加B+树的数据库，元信息页一般在文件的最后几个块，进行数据恢复时只需要从后完前找到第一个正确的元信息页就可以恢复整个数据库。&lt;/p&gt;
+&lt;p&gt;而boltdb其两个元信息页位于文件的最开始两页。数据库启动（恢复时）只需要验证前两页就能恢复整个数据库。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412112324.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;元信息页（meta page)作为数据库的入口，通过保存root bucket的页地址将数据的所有地址串联起来，而保存freelist page的页地址则将所有的空闲页串联起来。&lt;/p&gt;
+&lt;h2 id=&#34;heading5&#34;&gt;参考资料&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.infoq.com/presentations/lmdb-lighting-memory-mapped-database/#downloadPdf/&#34;&gt;Howard Chu 关于LMDB的演讲&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://www.bzero.se/ldapd/btree.html&#34;&gt;how the append-only btree works&lt;/a&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
+      <title>boltdb源码解析（四）—— ACID特性论证</title>
+      <link>http://auntlei.com/post/source/boltdb_4/</link>
+      <pubDate>Thu, 02 Apr 2020 17:04:20 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/source/boltdb_4/</guid>
+      
+        <description>&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_1/&#34;&gt;boltdb源码解析（一）—— 简介&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;介绍blotdb的使用，优势与注意事项，以及源码组织结构。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_2/&#34;&gt;boltdb源码解析（二）—— 数据结构与核心算法&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;介绍核心数据结构，数据持久化到文件的物理布局，与核心算法介绍。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_3/&#34;&gt;boltdb源码解析（三）—— CURD实现细节&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;深入实现细节剖析CURD，及空闲页管理逻辑&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;http://auntlei.com/post/source/boltdb_4/&#34;&gt;boltdb源码解析（四）—— ACID特性论证&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;分析、证明boltdb是如何保证ACID的四个重要特性&lt;/p&gt;
+&lt;p&gt;本篇将介绍事务过程中数据持久化顺序。介绍完持久化顺序之后，boltdb事务的ACID也就不言而喻了。&lt;/p&gt;
+&lt;h2 id=&#34;heading&#34;&gt;事务过程中，数据化持久顺序&lt;/h2&gt;
+&lt;p&gt;在介绍读写过程之前，需要简单提及下boltdb的一个特性&amp;ndash;物理文件按需增长。默认情况下boltdb在初始化时只申请最小空间（4个单位页），当数据增长时boltdb会相应增加物理文件，并重新mmap整个文件。因为golang 的&lt;code&gt;mmap&lt;/code&gt;不能指定map对象在程序虚拟地址空间（Virtual Address Space)内的偏移，重新mmap的对象可能和上次mmap的对象在虚拟地址上不一致，因此boltdb使用了一个读写锁来保护重新mmap的过程。重新map的过程中，因为写事务的inode在重新mmap之前指向的是原始页的偏移（相对拷贝整个key,value更节约内存)，因此在重新mmap的过程中需要解除写事物所有inode索引(即将inode中指向的key，value从原始页拷贝到非mmap区域——堆上）&lt;/p&gt;
+&lt;h3 id=&#34;heading1&#34;&gt;读&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412182736.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;heading2&#34;&gt;内存数据的一致性&lt;/h4&gt;
+&lt;p&gt;唯一可能造成内存中数据不一致的情景是用户函数出错。如果使用的是托管的事务（比如DB.View)而不是直接裸用Tx，那么boltdb通过golang的recover机制保证了事务的&lt;code&gt;Rollback&lt;/code&gt;一定会被调用。而Rollback会将此事务从数据库中的数据列表中删除。哪怕用户裸用Tx，最后不调用&lt;code&gt;Rollback&lt;/code&gt;，最差的后果也只是导致数据库中维护了大于两个版本的数据； 或者因为没有释放mmapLock而导致数据需要扩大文件大小时被阻塞而无法继续。这都不会造成内存数据的不一致。当然按照约定，用户需要调用Rollback&lt;/p&gt;
+&lt;h4 id=&#34;heading3&#34;&gt;数据文件的一致性&lt;/h4&gt;
+&lt;p&gt;因为读事务无法修改数据文件（任何修改操作都会出错），因此数据文件不会导致数据文件损坏。&lt;/p&gt;
+&lt;h3 id=&#34;heading4&#34;&gt;写&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412215052&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;heading5&#34;&gt;内存数据一致性&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;进入用户函数之前&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;因为有metalock的互斥锁保护，因此回收脏页而对数据库meta的修改并不会造成内存中数据不一致。&lt;strong&gt;注意freelist结构是内存中的结构，meta中只是保存了freelist持久化的坐在页的ID。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;进入用户函数之后&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;如果用户函数panic会进入rollback，或者用户主动调用&lt;code&gt;Rollback&lt;/code&gt;。虽然rollback过程中会重新读取文件中的freelist，但是和内存中的pending列表合并之后，实际上并不会改变freelist的内容。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;修改数据文件之前&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;平衡B+树和序列化当前freelist 修改的是虚拟页——堆（非mmap区域）的数据，因为meta没有更新，如果出错这部分数据不会被别的事务使用，因此也不会造成内存中数据的不一致。&lt;/p&gt;
+&lt;p&gt;虽然序列化事务修改后的freelist会将一些页标记成脏页，但是此时这些信息还没有被持久化，因此在rollback时将这些页从pending列表中删除之后，&lt;strong&gt;重读DB.meta指向的freelist页&lt;/strong&gt;恢复出来的freelist也是和进入事务之前是一致的。&lt;/p&gt;
+&lt;p&gt;修改数据文件之后，持久化元信息之前&lt;/p&gt;
+&lt;p&gt;和前面“修改数据文件之前”对内存中数据的影响没有区别，因为数据库的meta还没有更新&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;持久化元信息页之后&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;此时不会触发rollback过程，数据已经被正确更新。因为物理文件被正确更新，所以内存中的meta也是最新的了（MMAP_SHARED的保证)&lt;/p&gt;
+&lt;h4 id=&#34;heading6&#34;&gt;数据文件一致性&lt;/h4&gt;
+&lt;p&gt;修改数据文件就两个地方&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;持久化数据页之后&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;此时meta没有更新，因此在程序重启时，并不会访问到这些新写的内容&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;持久化元信息页之后&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;此时meta更新，程序重启恢复时访问的就是最新数据。&lt;/p&gt;</description>
       
     </item>
     
