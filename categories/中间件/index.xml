@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>中间件 on 萧七海的博客</title>
+    <link>http://auntlei.com/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
+    <description>Recent content in 中间件 on 萧七海的博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Thu, 04 Jun 2020 10:43:05 +0800</lastBuildDate>
+    
+	<atom:link href="http://auntlei.com/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Redis 学习笔记</title>
+      <link>http://auntlei.com/post/middleware/redis/</link>
+      <pubDate>Thu, 04 Jun 2020 10:43:05 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/middleware/redis/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
