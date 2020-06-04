@@ -32,7 +32,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.60.1" />
+<meta name="generator" content="Hugo 0.61.0" />
 
 
 <link rel="canonical" href="http://auntlei.com/post/source/boltdb_1/" />
@@ -53,7 +53,7 @@
 
 
 
-<link rel="stylesheet" href="/sass/jane.min.fa3d941d1d0e0ddc985804227feabffea55c89883eb0af34e0532a7ae9135151.css" integrity="sha256-&#43;j2UHR0ODdyYWAQif&#43;q//qVciYg&#43;sK804FMqeukTUVE=" media="screen" crossorigin="anonymous">
+<link rel="stylesheet" href="/sass/jane.min.0995afa14b62cd93e93cfc066b646c4c17a3eddca0e9d52a1d9dcf5d90aaacd3.css" integrity="sha256-CZWvoUtizZPpPPwGa2RsTBej7dyg6dUqHZ3PXZCqrNM=" media="screen" crossorigin="anonymous">
 
 
 
@@ -69,7 +69,7 @@
 <meta itemprop="description" content="">
 <meta itemprop="datePublished" content="2020-04-02T17:04:20&#43;08:00" />
 <meta itemprop="dateModified" content="2020-04-02T17:04:20&#43;08:00" />
-<meta itemprop="wordCount" content="765">
+<meta itemprop="wordCount" content="773">
 
 
 
@@ -325,11 +325,11 @@
     <li><a href="#boltdb-">boltdb 简介</a>
       <ul>
         <li><a href="#heading">是什么</a></li>
-        <li><a href="#heading1">怎么使用</a></li>
-        <li><a href="#heading2">适用场景</a></li>
+        <li><a href="#heading-1">怎么使用</a></li>
+        <li><a href="#heading-2">适用场景</a></li>
       </ul>
     </li>
-    <li><a href="#heading3">源码组织结构</a></li>
+    <li><a href="#heading-3">源码组织结构</a></li>
   </ul>
 </nav>
   </div>
@@ -348,7 +348,7 @@
 <h2 id="boltdb-">boltdb 简介</h2>
 <h3 id="heading">是什么</h3>
 <p>boltdb是纯golang实现的一个键-值数据库，你可以在自己的程序中使用boltdb库创建/操作数据库。boltdb参考LMDB实现，代码简洁也非常适合学习数据库的实现。boltdb的原始库已经归档，coreOS维护的fork用于社区开发者持续迭代。</p>
-<h3 id="heading1">怎么使用</h3>
+<h3 id="heading-1">怎么使用</h3>
 <p>简单示例如下， 新建一个数据库文件<code>my.db</code>、创建一个新桶<code>MyBucket</code>， 并放入键值对： <code>&quot;my-key&quot;, &quot;my-value&quot;</code>。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -389,7 +389,7 @@
 </code></pre></td></tr></table>
 </div>
 </div><p>更多的用法可以参考boltdb <a href="https://github.com/boltdb/bolt#getting-started">README</a> 及godoc。</p>
-<h3 id="heading2">适用场景</h3>
+<h3 id="heading-2">适用场景</h3>
 <ul>
 <li>程序需要内嵌数据库</li>
 <li>只需要简单的键值存储，不需要复杂的SQL查询与处理</li>
@@ -398,9 +398,21 @@
 </ul>
 <p>有哪些项目使用了boltdb?</p>
 <p>比如<a href="https://influxdata.com/">InfluxDB</a>，<a href="https://github.com/hashicorp/consul">Consul</a>，<a href="https://github.com/chrislusf/seaweedfs">Seaweed File System</a>。目前还没有时间探索这些知名项目是如何使用boltdb的。</p>
-<h2 id="heading3">源码组织结构</h2>
+<h2 id="heading-3">源码组织结构</h2>
 <p>只包含重要文件。golang通过编译标志支持多平台可以参考 <a href="https://golang.org/pkg/go/build/">go build</a></p>
-<pre><code>bolt_os_arch.go   // 含各操作系统、体系架构特殊syscall的实现
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">bolt_os_arch.go   // 含各操作系统、体系架构特殊syscall的实现
 bucket.go					// 数据库桶操作及持久化相关代码
 cursor.go					// 游标操作相关代码，用于定位读写位置
 db.go							// 数据库最顶层抽象
@@ -408,7 +420,9 @@ freelist.go				// 空闲页管理逻辑
 node.go						// b+树节点相关操作
 page.go						// 物理页相关操作
 tx.go							// 事务相关操作
-</code></pre>
+</code></pre></td></tr></table>
+</div>
+</div>
     </div>
 
     

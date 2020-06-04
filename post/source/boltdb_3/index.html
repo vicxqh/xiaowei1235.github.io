@@ -32,7 +32,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.60.1" />
+<meta name="generator" content="Hugo 0.61.0" />
 
 
 <link rel="canonical" href="http://auntlei.com/post/source/boltdb_3/" />
@@ -53,7 +53,7 @@
 
 
 
-<link rel="stylesheet" href="/sass/jane.min.fa3d941d1d0e0ddc985804227feabffea55c89883eb0af34e0532a7ae9135151.css" integrity="sha256-&#43;j2UHR0ODdyYWAQif&#43;q//qVciYg&#43;sK804FMqeukTUVE=" media="screen" crossorigin="anonymous">
+<link rel="stylesheet" href="/sass/jane.min.0995afa14b62cd93e93cfc066b646c4c17a3eddca0e9d52a1d9dcf5d90aaacd3.css" integrity="sha256-CZWvoUtizZPpPPwGa2RsTBej7dyg6dUqHZ3PXZCqrNM=" media="screen" crossorigin="anonymous">
 
 
 
@@ -330,11 +330,11 @@
         <li><a href="#bucket">内联（多层级）bucket支持</a></li>
       </ul>
     </li>
-    <li><a href="#b1">B+树的写时拷贝实现</a></li>
+    <li><a href="#b-1">B+树的写时拷贝实现</a></li>
     <li><a href="#heading">空闲页管理</a>
       <ul>
-        <li><a href="#heading1">怎么识别脏页（空闲页）</a></li>
-        <li><a href="#heading2">怎么回收空闲页</a></li>
+        <li><a href="#heading-1">怎么识别脏页（空闲页）</a></li>
+        <li><a href="#heading-2">怎么回收空闲页</a></li>
       </ul>
     </li>
   </ul>
@@ -398,11 +398,11 @@
 <h3 id="bucket">内联（多层级）bucket支持</h3>
 <p>多层级的bucket支持很简单直观，只需要在value中保存bucket序列化之后的内容即可。</p>
 <p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412144541.png" alt=""></p>
-<h4 id="bucket1">小bucket优化，虚拟页</h4>
+<h4 id="bucket-1">小bucket优化，虚拟页</h4>
 <p>有时候bucket内的所有数据加起来都远小于一个单页大小。为优化此种情况的空间开销（实际上也能提升大量小bucket情境下的性能），boltdb实现了虚拟页。</p>
 <p>当bucket的内容最够小时，bucket.root中不再保存页ID而是置零，同时将bucket的所有数据按照正常以页保存方式进行序列化之后拼接在bucket.sequence之后，如下图所示。</p>
 <p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412151142.png" alt=""></p>
-<h2 id="b1">B+树的写时拷贝实现</h2>
+<h2 id="b-1">B+树的写时拷贝实现</h2>
 <p><strong>注：这部分我们不介绍B+树在增加/删除节点的分裂/聚合这种重平衡（rebalance)的逻辑。这部分的逻辑和其他B+树无异，逻辑也不复杂，因此不再赘述。</strong></p>
 <p>boltdb中对数据的所有操作都需要通过Cursor先定位数据在B+树中的位置，然后才能进行相关操作。而操作可分为读与写，写时拷贝指所有写操作必须发生在拷贝之上。我们再看看数据结构中和Cursor相关的部分</p>
 <p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412161742.png" alt=""></p>
@@ -412,10 +412,10 @@
 <p><strong><code>inode</code></strong> 当node节点为叶子节点时，其子节点（叶子）的内容用inode表示，这里也只包含修改过的inode。 <strong>当叶子类型为bucket时，pgid保存了其所在页ID</strong>。</p>
 <h2 id="heading">空闲页管理</h2>
 <p>空闲页的管理无非就是两个问题：识别脏页（空闲页）、回收（重用）脏页。</p>
-<h3 id="heading1">怎么识别脏页（空闲页）</h3>
+<h3 id="heading-1">怎么识别脏页（空闲页）</h3>
 <p>再看node 与 <code>inode</code>结构体，都包含了其反序列化而来的原始页ID。而这些页在事务提交时也就变成了脏页（新版本数据会写到新页中），<strong>但这些脏页并不会立即释放而是放进freelist的等待队列中</strong>。之所以不立即释放是因为这些页还可能被其他读事务在访问。</p>
 <p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412162002.png" alt=""></p>
-<h3 id="heading2">怎么回收空闲页</h3>
+<h3 id="heading-2">怎么回收空闲页</h3>
 <p>前面提到了脏页可能不会立即释放，那么脏页什么时候释放呢？因为只有释放的脏页才能安全地进行重用。先看看freelist的数据结构，其不仅有已经完全释放的脏页（ids)，也有等待释放的事务极其对应的脏页列表（pending）。</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">

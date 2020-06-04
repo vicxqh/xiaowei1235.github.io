@@ -5,10 +5,28 @@
     <link>http://auntlei.com/post/</link>
     <description>Recent content in Posts on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 02 Apr 2020 17:07:20 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 15 Apr 2020 09:49:17 +0800</lastBuildDate>
     
 	<atom:link href="http://auntlei.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>《数据密集型应用系统设计》笔记</title>
+      <link>http://auntlei.com/post/reading/designing_data-intensive_applications/</link>
+      <pubDate>Wed, 15 Apr 2020 09:49:17 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/designing_data-intensive_applications/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>《Network Programming with Go by Jan Newmarch》</title>
+      <link>http://auntlei.com/post/reading/network_programming_with_go/</link>
+      <pubDate>Tue, 14 Apr 2020 10:32:30 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/network_programming_with_go/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>boltdb源码解析（四）—— ACID特性论证</title>

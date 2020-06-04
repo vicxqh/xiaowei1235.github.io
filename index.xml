@@ -5,7 +5,7 @@
     <link>http://auntlei.com/</link>
     <description>Recent content on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 02 Apr 2020 17:07:20 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 15 Apr 2020 09:49:17 +0800</lastBuildDate>
     
         <atom:link href="http://auntlei.com/index.xml" rel="self" type="application/rss+xml" />
     
@@ -31,6 +31,191 @@
     </item>
     
     <item>
+      <title>《数据密集型应用系统设计》笔记</title>
+      <link>http://auntlei.com/post/reading/designing_data-intensive_applications/</link>
+      <pubDate>Wed, 15 Apr 2020 09:49:17 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/designing_data-intensive_applications/</guid>
+      
+        <description>&lt;p&gt;这本书互联网从业者实践意义巨大，强烈推荐。&lt;/p&gt;
+&lt;h2 id=&#34;-&#34;&gt;第一部分 数据系统基础&lt;/h2&gt;
+&lt;h3 id=&#34;1-&#34;&gt;第1章 可靠、可扩展与可维护的应用系统&lt;/h3&gt;
+&lt;p&gt;当今许多新型应用都属于数据密集型( data-intensi ve)，而不是计算密集型 (compute-intensive)。对于这些类型应用， CPU的处理能力往往不是第一限制性因素，关键在于数据量、数据的复杂度及数据的快速多变性。&lt;/p&gt;
+&lt;p&gt;设计这类系统需要考虑三类问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;可靠性（Reliability）。当出现意外情况如硬件、软件故障、人为失误等，系统应可以继续正常运转:虽然性能可能有所降低，但确保功能正确。&lt;/li&gt;
+&lt;li&gt;可扩展性 (Scalability)。随着规模的增长 ，例如数据量 、流量或复杂性，系统应以合理的方式来匹配这种增长。&lt;/li&gt;
+&lt;li&gt;可维护性 (Maintainability)。随着时间的推移，许多新的人员参与到系统开发和运维， 以维护现有功能或适配新场景等，系统都应高效运转。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;既然我们已经明确了设计目标，那么怎么检测我们的系统是否满足这三个特性呢？我认为系统监控是检验的核心，我们需要有办法了解系统是否按照我们期望的方式运行。而监控的第一步就是要&lt;em&gt;明确衡量指标&lt;/em&gt;，比如系统占用了多少资源（CPU，内存，磁盘）、响应时间（p50,p99,p999)等。只有当监控指标明确之后，我们才能检测系统在出错下是否可靠，是否具备横向/纵向的可扩展能力。监控对于可维护性来说则更为重要，监控能增强运维改动的信心，及时发现问题。&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&#34;2-&#34;&gt;第2章 数据模型与查询语言&lt;/h3&gt;
+&lt;p&gt;TODO: 这部分关于各种数据模型的介绍，尤其是图数据模型没有看明白&lt;/p&gt;
+&lt;h3 id=&#34;3-&#34;&gt;第3章 数据存储与检索&lt;/h3&gt;
+&lt;p&gt;数据库最基本的两个能力是插入时能保存数据，并且在以后的查询中能返回这些数据。&lt;/p&gt;
+&lt;p&gt;数据库采用的数据结构决定了其读写性能及空间利用率。对于写入，顺序写入的性能往往比随机写入高出几个数量级。因为操作系统能对外部存储的大块区域进行缓存，因此顺序/随机读取的性能不如写入影响那么明显。&lt;/p&gt;
+&lt;h4 id=&#34;heading&#34;&gt;数据结构&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;哈希索引&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;假设数据存储全部采用追加式文件组成，那么最简单的索引策略就是: 保存内存中的hash map，把每个键一一映射到数据文件中特定的字节偏移量，这样就可以找到每个值的位置。如果数据文件有多份，那么对应在内存中也就可能有多份hash map。&lt;/p&gt;
+&lt;p&gt;这种方式比较适合更新频繁的场景但是不能解决范围查询的问题。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;SSTables和LSM-tree&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;要解决范围查询，将哈希索引转换成一种有序的数据结构，比如红黑树。如果数据文件中的记录也是排序的，那么将数据文件中的键稀疏地映射到内存中，就可以通过内存中的索引查找到给定key在数据文件中的可能范围。配合WAL可以保证写入先缓存在内存中，然后一次将整个sstable写入文件（追加）。为提升查询效率，可以使用布隆过滤器。&lt;/p&gt;
+&lt;p&gt;LSM-tree合并有两种方式，size-tiered compaction 与 leveled compaction 书中解释得不够清晰，补充在这里：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;size-tiered compaction是指将SSTable分为多个阶梯（tier）每个阶梯有固定数目（sized)的sstable文件，当一个阶梯的sstable数量达到size大小时，将他们compact成一个更大的sstable并放到下一个tier，如果下一个tier的数目达到阈值则继续compact。&lt;/li&gt;
+&lt;li&gt;leveled compaction: rocksdb的这篇文章介绍得很清楚https://github.com/facebook/rocksdb/wiki/Leveled-Compaction
+基本思想时，将sstable分成不同的level，并且每个level内的sstable 范围互不重叠。而单个sstable大小固定，不同的level总大小递增，因此level越高的层，具有越多的sstable。因为sstable的大小固定，所以当上层的sstable与下层的sstable合并时，可能会产生新的sstable，当一层的数据总大小超过限制时，会从中选择一个（随机？）sstable合并到下一层。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;B tree&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;B+tree 使用很常见了。如果是in-place修改就使用WAL，append-only可以不使用WAL。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;其他索引&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;聚簇索引&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;索引和数据存储在一块（ 都存储在同一个B*tree 中）。
+一般主键索引都是聚餐索引&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;非聚簇索引&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;索引数据和存储数据是分离的。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;二级索引（辅助索引）&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;二级索引存储的是记录的主键，而不是数据存储的地址。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;多列索引&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;同时为多列建立索性，传统的b tree， lsm都不能解决这个问题，需要专门的结构。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;heading-1&#34;&gt;数据处理与分析处理&lt;/h4&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200416161154.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;heading-2&#34;&gt;列式存储&lt;/h4&gt;
+&lt;p&gt;在分析处理过程（大数据处理）虽然一个记录可能有上百列，但是单次分析需要的数据通常就其中的三四列。因此按列存储能提升查询性能，并且由于列的值域可能小于行数（或者列与列之间重复的内容比较多），因此也容易做压缩。&lt;/p&gt;
+&lt;h3 id=&#34;4-&#34;&gt;第4章 数据编码与演化&lt;/h3&gt;
+&lt;h4 id=&#34;heading-3&#34;&gt;数据编码（序列化）&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;编程语言特定的编码仅限于某一种编程语言，往往无法提供向前和向后兼容性。&lt;/li&gt;
+&lt;li&gt;JSON、 XML和csv等文本格式非常普遍，其兼容性取决于你如何使用他们。这些格式对某些数据类型的支持有些模糊，**必须小心处理数字（比如json的精度问题）**和二进制字符串等问题。&lt;/li&gt;
+&lt;li&gt;像Thrift、 Protocol Buffers和Avro这样的二进制的模式驱动格式，支持使用清晰定义的向前和向后兼容性语义进行紧凑、高效的编码。这些模式对于静态类型语言中的文档和代码生成非常有用。然而，它们有一个缺点，即只有在数据解码后才是人类可读的。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在编码向前、向后兼容的时候，对新增字段有一个需要特别注意的地方。当新版本增加了一个字段假设为F，虽然老版本的程序在反序列化是会忽略这个值（向后兼容），但是在写回时得务必小心，防止丢弃数据（F的值变为了默认值）。&lt;/p&gt;
+&lt;h4 id=&#34;heading-4&#34;&gt;数据流的传输方式&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;数据库，其中写入数据库的进程对数据进行编码，而读取数据库的进程对数据进&lt;/p&gt;
+&lt;p&gt;行解码。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;RPC和REST API，其中客户端对请求进行编码，服务器对请求进行解码井对响&lt;/p&gt;
+&lt;p&gt;应进行编码，客户端最终对响应进行解码。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;异步消息传递(使用消息代理或Actor)，节点之间通过互相发送消息进行通 信，消息由发送者编码并由接收者解码&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;其中对于消息代理方式，其好处表现为：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;如果接收方不可用或过载，它可以充当缓冲区，从而提高系统的可靠性。&lt;/li&gt;
+&lt;li&gt;它可以自动将消息重新发送到崩愤的进程，从而防止消息丢失 。 (&lt;strong&gt;这个不是免费的，要自己想办法实现，保证消息在生产、传递、消费的各个环节中的可靠性。但是可靠性的保证不外乎就是事务的支持，以及在重复处理时的幂等问题&lt;/strong&gt;)&lt;/li&gt;
+&lt;li&gt;它在逻辑上将发送方与接收方分离，解耦&lt;/li&gt;
+&lt;li&gt;它支持将 一 条消息发送给多个接收方。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;--&#34;&gt;第二部分 分布式数据系统 （本书精华，对实践具有一定的指导意义）&lt;/h2&gt;
+&lt;h3 id=&#34;5-&#34;&gt;第5章 数据复制&lt;/h3&gt;
+&lt;h4 id=&#34;heading-5&#34;&gt;按角色定位分&lt;/h4&gt;
+&lt;p&gt;按照节点的角色不同，分为：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;主从复制：只有主节点接收写请求。&lt;/li&gt;
+&lt;li&gt;多主复制：有多个主节点，主节点都可以接收写请求。&lt;/li&gt;
+&lt;li&gt;无主复制：所有节点都是主节点。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;其中，最常见的是主从复制。通过从节点来提升系统整体的读性能。但是这种方式在业务跨多数据中心时，如果让所有的写入都定打到到一个数据中心可能达不到业务需求。因此对于多数据中心常常使用多主复制的策略。如下图&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200417145230.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;在单个数据中心内使用主从复制，但是多数据中心使用多主的策略。&lt;/p&gt;
+&lt;p&gt;而无主复制更为极端，所有的节点都没有主从之分，常见于多人协同在线文档的场景等。&lt;/p&gt;
+&lt;h4 id=&#34;heading-6&#34;&gt;数据复制方式&lt;/h4&gt;
+&lt;p&gt;从时效性上可以分为：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;同步复制 接收写入的节点要等到指定个（不一定是所有）节点完成复制之后才向客户端返回结果&lt;/li&gt;
+&lt;li&gt;异步复制 接收写入的节点完成修改后立即向客户端发挥结果，之后再将修改发送到其他节点。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;同步复制虽然更容易保证数据的一致性，但是由于复制的延迟问题，会使得整个系统的写入变慢，尤其当有多个同步复制的节点时。所以在实践中，哪怕是主从复制，也不会将所有的从节点都配置成同步复制。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;复制日志的实现&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基于语句复制。几乎不用，因为有些语句比如Now()在重放时，每个节点都可能有不同的值&lt;/li&gt;
+&lt;li&gt;基于WAL。有很多软件使用。如果WAL描述的是物理介质上某偏移字节的修改，那么这种复制方式在跨软件版本时可能有问题。比如不能实现软件版本的滚动升级。&lt;/li&gt;
+&lt;li&gt;基于行的逻辑日志复制。复制和存储引擎采用不同的日志格式，这样复制与存储逻辑剥离。MySQL的binlog就属于这种方式。&lt;/li&gt;
+&lt;li&gt;基于触发器。数据库软件支持一些触发器（比如onCommit)，可以在这些触发器中实现自定义的复制逻辑。虽然定制化程度高，但是容易出错。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;heading-7&#34;&gt;复制的问题&lt;/h4&gt;
+&lt;p&gt;所有这些问题都没有很好的解决方案，是设计时的权衡。因此一定要仔细考虑服务在各种意外场景下的表现行为，并和所有关联方进行确认。保证数据的一致性是后面章节的内容，这里没有特别通用的方法&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;数据丢失&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;读滞后&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;用户在主节点写入，紧接着从从节点读取。从节点可能还没有完成数据复制。解决方案可能是“读自己写”&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;写冲突&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&#34;6-&#34;&gt;第6章 数据分区&lt;/h3&gt;
+&lt;p&gt;分区通常与复制结合使用，即每个分区在多个节点都存有副本。分区主要是为了提升海量数据的读&lt;strong&gt;写&lt;/strong&gt;性能。如果分区负载均匀，那么可以成分区倍数地提升系统的读写吞吐量，但是如果分区不均，则可能少数节点承载了系统的多数请求，出现倾斜的现象。&lt;/p&gt;
+&lt;p&gt;分区有两种方式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基于区间。容易出现热点，但是方便实现区间查询&lt;/li&gt;
+&lt;li&gt;基于哈希值。流量更随机，但区间查询效率不高&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;如果涉及二级索引，根据其是否和数据分区规则一致又可以分为两种方式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;本地索引。二级索引存储在与关键字相同的分区中 ，这意味着写入时我们只需要更新一个分区，但缺点是读取二级索引时需要在 所有分区上执行 scatter/gather。&lt;/li&gt;
+&lt;li&gt;全局索引。它是基于索引的值而进行的独立分区。 二级索引中的条目可能包含来自关键字的多个分区里的记录。在写入时 ，不得不更新二级索引的多个分区;但读取时 ，则可以从单个分区直接快速提取数据。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;7-&#34;&gt;第7章 事务&lt;/h3&gt;
+&lt;h4 id=&#34;heading-8&#34;&gt;事务的定义不够精确&lt;/h4&gt;
+&lt;p&gt;提到事务，大家都知道ACID，对应：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Atomicity（原子性)）指的是All or Nothing，即事务中的所有更新要么都发生、要么都不发生。它并不关乎多个操作的并发性，它并没有描述多个线程试图访问相同的数据会发生什么情况，后者其实是由 ACID的&lt;strong&gt;隔离性&lt;/strong&gt;所定义。&lt;/li&gt;
+&lt;li&gt;Consistency（一致性）指对数据有特定的预期状态，任何数据更改必须满足这些 状态约束(或者恒等条件)。例如，对于一个账单系统，账户的贷款余额应和借款余 额保持平衡。如果某事务从一个有效的状态开始，并且事务中任何更新操作都没有违背约束，那么最后的结果依然符合有效状态。但这实际上是一种应用层的状态约束，不是数据库可以保证的。&lt;/li&gt;
+&lt;li&gt;Isolation（隔离性）并发执行的多个事务相互隔离，它们不能互相交叉。但是这并不意味着事务之间的执行就好比是串行化执行一样，这其中又分为多种不同的“弱隔离级别”&lt;/li&gt;
+&lt;li&gt;Durability（持久性）一 且事务提交成功，即使存在硬件故障或数据库崩愤，事务所 写入的任何数据也不会消失。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;weak-isolation-levels&#34;&gt;弱隔离级别（Weak Isolation Levels）&lt;/h4&gt;
+&lt;p&gt;这部分作者的规律有些不清晰，以后再补充&lt;/p&gt;
+&lt;h3 id=&#34;8-&#34;&gt;第8章 分布式系统的挑战&lt;/h3&gt;
+&lt;p&gt;这张主要阐述三类问题对分布式系统带来的挑战：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;网络不可靠。数据包可能会丢失或者延迟。当没有收到对方节点回应时，也不能确定消息是否送达，因此消息也可能存在重放的问题。&lt;/li&gt;
+&lt;li&gt;时钟不同步。由于网络延迟的不确定性，通过NTP服务也不能保证节点间的时钟同步。另外由于节点时钟频率可能和NTP服务器的时钟频率存在差异，可能在节点上观测到时钟先前或者先后的跳跃。如果需要在单节点上测量时间差，可以使用线性时间。时钟的不同步，使得我们不可能简单地靠时间戳来判断事件发生的先后顺序。&lt;/li&gt;
+&lt;li&gt;进程可能在执行的任意时刻暂停任意时长。比如一些语言的垃圾回收器会Stop The World，或者位于虚拟机中的容器可能被宿主机暂停任意时长。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;9-&#34;&gt;第9章 一致性与共识&lt;/h3&gt;
+&lt;p&gt;本章主要是还是概念性的知识。（TODO）&lt;/p&gt;
+&lt;h2 id=&#34;--1&#34;&gt;第三部分 派生数据&lt;/h2&gt;
+&lt;p&gt;第三部分整体看起来别扭，可能和翻译质量有关。这部分总结比较少。&lt;/p&gt;
+&lt;h3 id=&#34;10-&#34;&gt;第10章 批处理系统&lt;/h3&gt;
+&lt;p&gt;介绍了map-reduce的基本思想及开源软件库Hadoop的相应功能介绍。&lt;/p&gt;
+&lt;p&gt;第11章 流处理系统&lt;/p&gt;
+&lt;p&gt;介绍了消息队列相关的知识，其它关于流的理论性知识对实践的意义不大。由于后面会看Kafka相关的书籍，这里不做太多总结。&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
+      <title>《Network Programming with Go by Jan Newmarch》</title>
+      <link>http://auntlei.com/post/reading/network_programming_with_go/</link>
+      <pubDate>Tue, 14 Apr 2020 10:32:30 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/network_programming_with_go/</guid>
+      
+        <description>&lt;p&gt;&lt;strong&gt;这是一本很简单入门书籍，不适合对网络编程有了解，希望探索go在网络编程（socket编程）上的一些陷阱、最佳实践或者高级技巧的朋友&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;书本内容从结构上看比较丰富，首先介绍网络整体架构，接着介绍如何使用golang进行面向socket的编程，最后介绍更高层次是数据序列化以及构建简单的网络应用。但是内容落后（个别API不存在了），对于稍微有点编程经验的读者来说都过于简单，是非常初阶的只是。&lt;/p&gt;
+&lt;p&gt;简单总结，这本书只是很浅显的介绍了net包下对P/TCP/UDP链接的简单使用、以及http包、TLS的介绍，剩下主要的就是各种常见序列化包的介绍了。&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>boltdb源码解析（四）—— ACID特性论证</title>
       <link>http://auntlei.com/post/source/boltdb_4/</link>
       <pubDate>Thu, 02 Apr 2020 17:07:20 +0800</pubDate>
@@ -48,15 +233,15 @@
 &lt;p&gt;本篇将介绍事务过程中数据持久化顺序。介绍完持久化顺序之后，boltdb事务的ACID也就不言而喻了。&lt;/p&gt;
 &lt;h2 id=&#34;heading&#34;&gt;事务过程中，数据化持久顺序&lt;/h2&gt;
 &lt;p&gt;在介绍读写过程之前，需要简单提及下boltdb的一个特性&amp;ndash;物理文件按需增长。默认情况下boltdb在初始化时只申请最小空间（4个单位页），当数据增长时boltdb会相应增加物理文件，并重新mmap整个文件。因为golang 的&lt;code&gt;mmap&lt;/code&gt;不能指定map对象在程序虚拟地址空间（Virtual Address Space)内的偏移，重新mmap的对象可能和上次mmap的对象在虚拟地址上不一致，因此boltdb使用了一个读写锁来保护重新mmap的过程。重新map的过程中，因为写事务的inode在重新mmap之前指向的是原始页的偏移（相对拷贝整个key,value更节约内存)，因此在重新mmap的过程中需要解除写事物所有inode索引(即将inode中指向的key，value从原始页拷贝到非mmap区域——堆上）&lt;/p&gt;
-&lt;h3 id=&#34;heading1&#34;&gt;读&lt;/h3&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;读&lt;/h3&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412182736.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h4 id=&#34;heading2&#34;&gt;内存数据的一致性&lt;/h4&gt;
+&lt;h4 id=&#34;heading-2&#34;&gt;内存数据的一致性&lt;/h4&gt;
 &lt;p&gt;唯一可能造成内存中数据不一致的情景是用户函数出错。如果使用的是托管的事务（比如DB.View)而不是直接裸用Tx，那么boltdb通过golang的recover机制保证了事务的&lt;code&gt;Rollback&lt;/code&gt;一定会被调用。而Rollback会将此事务从数据库中的数据列表中删除。哪怕用户裸用Tx，最后不调用&lt;code&gt;Rollback&lt;/code&gt;，最差的后果也只是导致数据库中维护了大于两个版本的数据； 或者因为没有释放mmapLock而导致数据需要扩大文件大小时被阻塞而无法继续。这都不会造成内存数据的不一致。当然按照约定，用户需要调用Rollback&lt;/p&gt;
-&lt;h4 id=&#34;heading3&#34;&gt;数据文件的一致性&lt;/h4&gt;
+&lt;h4 id=&#34;heading-3&#34;&gt;数据文件的一致性&lt;/h4&gt;
 &lt;p&gt;因为读事务无法修改数据文件（任何修改操作都会出错），因此数据文件不会导致数据文件损坏。&lt;/p&gt;
-&lt;h3 id=&#34;heading4&#34;&gt;写&lt;/h3&gt;
+&lt;h3 id=&#34;heading-4&#34;&gt;写&lt;/h3&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412215052&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h4 id=&#34;heading5&#34;&gt;内存数据一致性&lt;/h4&gt;
+&lt;h4 id=&#34;heading-5&#34;&gt;内存数据一致性&lt;/h4&gt;
 &lt;p&gt;&lt;strong&gt;进入用户函数之前&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;因为有metalock的互斥锁保护，因此回收脏页而对数据库meta的修改并不会造成内存中数据不一致。&lt;strong&gt;注意freelist结构是内存中的结构，meta中只是保存了freelist持久化的坐在页的ID。&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;进入用户函数之后&lt;/strong&gt;&lt;/p&gt;
@@ -68,7 +253,7 @@
 &lt;p&gt;和前面“修改数据文件之前”对内存中数据的影响没有区别，因为数据库的meta还没有更新&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;持久化元信息页之后&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;此时不会触发rollback过程，数据已经被正确更新。因为物理文件被正确更新，所以内存中的meta也是最新的了（MMAP_SHARED的保证)&lt;/p&gt;
-&lt;h4 id=&#34;heading6&#34;&gt;数据文件一致性&lt;/h4&gt;
+&lt;h4 id=&#34;heading-6&#34;&gt;数据文件一致性&lt;/h4&gt;
 &lt;p&gt;修改数据文件就两个地方&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;持久化数据页之后&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;此时meta没有更新，因此在程序重启时，并不会访问到这些新写的内容&lt;/p&gt;
@@ -138,11 +323,11 @@
 &lt;h3 id=&#34;bucket&#34;&gt;内联（多层级）bucket支持&lt;/h3&gt;
 &lt;p&gt;多层级的bucket支持很简单直观，只需要在value中保存bucket序列化之后的内容即可。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412144541.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h4 id=&#34;bucket1&#34;&gt;小bucket优化，虚拟页&lt;/h4&gt;
+&lt;h4 id=&#34;bucket-1&#34;&gt;小bucket优化，虚拟页&lt;/h4&gt;
 &lt;p&gt;有时候bucket内的所有数据加起来都远小于一个单页大小。为优化此种情况的空间开销（实际上也能提升大量小bucket情境下的性能），boltdb实现了虚拟页。&lt;/p&gt;
 &lt;p&gt;当bucket的内容最够小时，bucket.root中不再保存页ID而是置零，同时将bucket的所有数据按照正常以页保存方式进行序列化之后拼接在bucket.sequence之后，如下图所示。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412151142.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h2 id=&#34;b1&#34;&gt;B+树的写时拷贝实现&lt;/h2&gt;
+&lt;h2 id=&#34;b-1&#34;&gt;B+树的写时拷贝实现&lt;/h2&gt;
 &lt;p&gt;&lt;strong&gt;注：这部分我们不介绍B+树在增加/删除节点的分裂/聚合这种重平衡（rebalance)的逻辑。这部分的逻辑和其他B+树无异，逻辑也不复杂，因此不再赘述。&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;boltdb中对数据的所有操作都需要通过Cursor先定位数据在B+树中的位置，然后才能进行相关操作。而操作可分为读与写，写时拷贝指所有写操作必须发生在拷贝之上。我们再看看数据结构中和Cursor相关的部分&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412161742.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
@@ -152,10 +337,10 @@
 &lt;p&gt;&lt;strong&gt;&lt;code&gt;inode&lt;/code&gt;&lt;/strong&gt; 当node节点为叶子节点时，其子节点（叶子）的内容用inode表示，这里也只包含修改过的inode。 &lt;strong&gt;当叶子类型为bucket时，pgid保存了其所在页ID&lt;/strong&gt;。&lt;/p&gt;
 &lt;h2 id=&#34;heading&#34;&gt;空闲页管理&lt;/h2&gt;
 &lt;p&gt;空闲页的管理无非就是两个问题：识别脏页（空闲页）、回收（重用）脏页。&lt;/p&gt;
-&lt;h3 id=&#34;heading1&#34;&gt;怎么识别脏页（空闲页）&lt;/h3&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;怎么识别脏页（空闲页）&lt;/h3&gt;
 &lt;p&gt;再看node 与 &lt;code&gt;inode&lt;/code&gt;结构体，都包含了其反序列化而来的原始页ID。而这些页在事务提交时也就变成了脏页（新版本数据会写到新页中），&lt;strong&gt;但这些脏页并不会立即释放而是放进freelist的等待队列中&lt;/strong&gt;。之所以不立即释放是因为这些页还可能被其他读事务在访问。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412162002.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading2&#34;&gt;怎么回收空闲页&lt;/h3&gt;
+&lt;h3 id=&#34;heading-2&#34;&gt;怎么回收空闲页&lt;/h3&gt;
 &lt;p&gt;前面提到了脏页可能不会立即释放，那么脏页什么时候释放呢？因为只有释放的脏页才能安全地进行重用。先看看freelist的数据结构，其不仅有已经完全释放的脏页（ids)，也有等待释放的事务极其对应的脏页列表（pending）。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
@@ -211,13 +396,13 @@
 &lt;p&gt;影响性能有很多方面，这里只讨论缓存设计，对于读写竞争不做介绍。下文会介绍写时拷贝b+树，而写时拷贝自然而然也就实现了&lt;a href=&#34;https://en.wikipedia.org/wiki/Multiversion_concurrency_control&#34;&gt;MVCC（Multiversion concurrency control&lt;/a&gt;。&lt;/p&gt;
 &lt;p&gt;Howard Chu（LMDB作者）介绍在设计LMDB之前，他和其他人一样使用著名的&lt;a href=&#34;https://en.wikipedia.org/wiki/Berkeley_DB&#34;&gt;Berkeley DB（BDB）&lt;/a&gt;。但是BDB有三层缓存系统，对这套复杂系统进行调优需要花很多时间，并且可能造成一些意想不到的结果，比如数据库死锁，而LMDB使用mmap则不需要额外的缓存系统就可以带来理想的性能收益，数据库配置也变得更加简单。这也是核心思想中的第1点。&lt;/p&gt;
 &lt;p&gt;此外LMDB中mmap采用了只读方式，直接写内存中的数据会产生段错误（SEGV），这样的好处是在迭代开发的过程中，可以快速发现逻辑错误。那么怎么更新数据呢？blotdb采用的是直接写文件+fsync的方式。&lt;/p&gt;
-&lt;h3 id=&#34;heading1&#34;&gt;数据一致性&lt;/h3&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;数据一致性&lt;/h3&gt;
 &lt;p&gt;性能只是数据库设计的一方面，另一方面是对事务ACID特性的保证。LMDB使用写时拷贝B+树，在介绍它之前，我们可以先了解下其它技术。&lt;/p&gt;
 &lt;h4 id=&#34;wal&#34;&gt;WAL&lt;/h4&gt;
 &lt;p&gt;BDB及其他数据库多使用&lt;a href=&#34;https://en.wikipedia.org/wiki/Write-ahead_logging&#34;&gt;WAL&lt;/a&gt;来保证数据的一致性。WAL是指描述改动的操作记录必须先被持久化到磁盘上之后，才能修改对应的值并提交整个事务。当数据处于不一致的状态时（比如处理事务过程中宕机后重启），可以通过回扫操作记录将数据库恢复到一个一致的状态。&lt;/p&gt;
 &lt;p&gt;下图描述了往一个空的key-value 数据库中&lt;code&gt;put(key-1,value-1)&lt;/code&gt;过程中WAL与数据修改之间的关系。注意这个只是概念演示，不同的数据库实现有不同的方式。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410133805.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h4 id=&#34;bappendonly-b-tree&#34;&gt;只追加B+树（append-only B+ tree）&lt;/h4&gt;
+&lt;h4 id=&#34;bappend-only-b-tree&#34;&gt;只追加B+树（append-only B+ tree）&lt;/h4&gt;
 &lt;p&gt;WAL的方式中数据和数据操作（日志）是分开的，而只追加B+树则不需要额外的日志。下面举例说明&lt;/p&gt;
 &lt;p&gt;假设现有一个三层B+树组织的数据&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410125417.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
@@ -262,8 +447,8 @@
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;heading2&#34;&gt;数据持久化&lt;/h3&gt;
-&lt;h4 id=&#34;heading3&#34;&gt;数据结构&lt;/h4&gt;
+&lt;h3 id=&#34;heading-2&#34;&gt;数据持久化&lt;/h3&gt;
+&lt;h4 id=&#34;heading-3&#34;&gt;数据结构&lt;/h4&gt;
 &lt;p&gt;这里不包括B+树相关的持久化方式，此部分在后续介绍B+树管理数据部分会详细介绍。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;page（页）&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;bolt管理文件数据的基本单位，单位大小等同于操作系统页大小。包含头部（header) 与数据区（data)两部分。&lt;/p&gt;
@@ -311,12 +496,12 @@
 &lt;li&gt;root 此bucket根节点所在的页ID&lt;/li&gt;
 &lt;li&gt;sequence 用于实现单个bucket的自增序列&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h4 id=&#34;heading4&#34;&gt;物理布局&lt;/h4&gt;
+&lt;h4 id=&#34;heading-4&#34;&gt;物理布局&lt;/h4&gt;
 &lt;p&gt;其他使用只追加B+树的数据库，元信息页一般在文件的最后几个块，进行数据恢复时只需要从后完前找到第一个正确的元信息页就可以恢复整个数据库。&lt;/p&gt;
 &lt;p&gt;而boltdb其两个元信息页位于文件的最开始两页。数据库启动（恢复时）只需要验证前两页就能恢复整个数据库。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412112324.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;元信息页（meta page)作为数据库的入口，通过保存root bucket的页地址将数据的所有地址串联起来，而保存freelist page的页地址则将所有的空闲页串联起来。&lt;/p&gt;
-&lt;h2 id=&#34;heading5&#34;&gt;参考资料&lt;/h2&gt;
+&lt;h2 id=&#34;heading-5&#34;&gt;参考资料&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&#34;https://www.infoq.com/presentations/lmdb-lighting-memory-mapped-database/#downloadPdf/&#34;&gt;Howard Chu 关于LMDB的演讲&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;a href=&#34;http://www.bzero.se/ldapd/btree.html&#34;&gt;how the append-only btree works&lt;/a&gt;&lt;/p&gt;</description>
       
@@ -340,7 +525,7 @@
 &lt;h2 id=&#34;boltdb-&#34;&gt;boltdb 简介&lt;/h2&gt;
 &lt;h3 id=&#34;heading&#34;&gt;是什么&lt;/h3&gt;
 &lt;p&gt;boltdb是纯golang实现的一个键-值数据库，你可以在自己的程序中使用boltdb库创建/操作数据库。boltdb参考LMDB实现，代码简洁也非常适合学习数据库的实现。boltdb的原始库已经归档，coreOS维护的fork用于社区开发者持续迭代。&lt;/p&gt;
-&lt;h3 id=&#34;heading1&#34;&gt;怎么使用&lt;/h3&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;怎么使用&lt;/h3&gt;
 &lt;p&gt;简单示例如下， 新建一个数据库文件&lt;code&gt;my.db&lt;/code&gt;、创建一个新桶&lt;code&gt;MyBucket&lt;/code&gt;， 并放入键值对： &lt;code&gt;&amp;quot;my-key&amp;quot;, &amp;quot;my-value&amp;quot;&lt;/code&gt;。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
@@ -381,7 +566,7 @@
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;更多的用法可以参考boltdb &lt;a href=&#34;https://github.com/boltdb/bolt#getting-started&#34;&gt;README&lt;/a&gt; 及godoc。&lt;/p&gt;
-&lt;h3 id=&#34;heading2&#34;&gt;适用场景&lt;/h3&gt;
+&lt;h3 id=&#34;heading-2&#34;&gt;适用场景&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;程序需要内嵌数据库&lt;/li&gt;
 &lt;li&gt;只需要简单的键值存储，不需要复杂的SQL查询与处理&lt;/li&gt;
@@ -390,9 +575,21 @@
 &lt;/ul&gt;
 &lt;p&gt;有哪些项目使用了boltdb?&lt;/p&gt;
 &lt;p&gt;比如&lt;a href=&#34;https://influxdata.com/&#34;&gt;InfluxDB&lt;/a&gt;，&lt;a href=&#34;https://github.com/hashicorp/consul&#34;&gt;Consul&lt;/a&gt;，&lt;a href=&#34;https://github.com/chrislusf/seaweedfs&#34;&gt;Seaweed File System&lt;/a&gt;。目前还没有时间探索这些知名项目是如何使用boltdb的。&lt;/p&gt;
-&lt;h2 id=&#34;heading3&#34;&gt;源码组织结构&lt;/h2&gt;
+&lt;h2 id=&#34;heading-3&#34;&gt;源码组织结构&lt;/h2&gt;
 &lt;p&gt;只包含重要文件。golang通过编译标志支持多平台可以参考 &lt;a href=&#34;https://golang.org/pkg/go/build/&#34;&gt;go build&lt;/a&gt;&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;bolt_os_arch.go   // 含各操作系统、体系架构特殊syscall的实现
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;bolt_os_arch.go   // 含各操作系统、体系架构特殊syscall的实现
 bucket.go					// 数据库桶操作及持久化相关代码
 cursor.go					// 游标操作相关代码，用于定位读写位置
 db.go							// 数据库最顶层抽象
@@ -400,7 +597,9 @@ freelist.go				// 空闲页管理逻辑
 node.go						// b+树节点相关操作
 page.go						// 物理页相关操作
 tx.go							// 事务相关操作
-&lt;/code&gt;&lt;/pre&gt;</description>
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description>
       
     </item>
     
@@ -428,8 +627,15 @@ tx.go							// 事务相关操作
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;输出&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;4 3 2 1 0 
-&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;deldefer--defer-mutexunlock-mutexunlockdel&#34;&gt;&lt;!-- raw HTML omitted --&gt;defer 并不是免费的。比如 defer Mutex.Unlock 比直接Mutex.Unlock开销更大&lt;!-- raw HTML omitted --&gt;&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;4 3 2 1 0 
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;deldefer--defer-mutexunlock-mutexunlockdel&#34;&gt;&lt;!-- raw HTML omitted --&gt;defer 并不是免费的。比如 defer Mutex.Unlock 比直接Mutex.Unlock开销更大&lt;!-- raw HTML omitted --&gt;&lt;/h3&gt;
 &lt;p&gt;对于一些简短的加锁-修改某个值-释放锁的操作可以做么做。但是如果在加锁之后，可能在不同的分支都需要执行释放锁，还是建议直接使用defer Mutex.Unlock， 否则在（以后）修改或者新增分支的时候可能忘记释放锁从而引入bug。除非必要，应该&lt;strong&gt;以代码的可维护性为主&lt;/strong&gt;。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
@@ -491,9 +697,17 @@ tx.go							// 事务相关操作
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;pre&gt;&lt;code&gt;BenchmarkUnlockDefer-4          20000000                56.9 ns/op
+&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;BenchmarkUnlockDefer-4          20000000                56.9 ns/op
 BenchmarkUnlockDirect-4         50000000                31.7 ns/op
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;slice-vs-array&#34;&gt;slice vs array&lt;/h2&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;slice-vs-array&#34;&gt;slice vs array&lt;/h2&gt;
 &lt;h3 id=&#34;array&#34;&gt;array的长度是类型的一部分&lt;/h3&gt;
 &lt;p&gt;&lt;code&gt;[3]int&lt;/code&gt; 和 &lt;code&gt;[4]int&lt;/code&gt; 是不同的类型&lt;/p&gt;
 &lt;h3 id=&#34;array-&#34;&gt;array 是传值的，值指的是整个数组的内容&lt;/h3&gt;
@@ -522,17 +736,35 @@ BenchmarkUnlockDirect-4         50000000                31.7 ns/op
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;输出&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[3 2 1]
-&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;slice-&#34;&gt;slice 本质也是传值，但看起来像传递了底层数组的引用&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;[3 2 1]
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;slice-&#34;&gt;slice 本质也是传值，但看起来像传递了底层数组的引用&lt;/h3&gt;
 &lt;p&gt;&lt;strong&gt;golang 都是传值的&lt;/strong&gt;，slice看起来像是传引用是因为slice的值本身包含了一个对底层数组的引用（指针）。通过查看下面的slice结构体描述就很清晰。&lt;a href=&#34;https://golang.org/src/runtime/slice.go&#34;&gt;src/runtime/slice.go&lt;/a&gt;&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;type slice struct {
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;type slice struct {
 	array unsafe.Pointer
 	len   int
 	cap   int
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;slice-mapkeyslicearray&#34;&gt;slice 不能作为map对象的key，因为slice没有实现完全实现&lt;code&gt;==&lt;/code&gt;操作符，但是array可以。&lt;/h3&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;slice-mapkeyslicearray&#34;&gt;slice 不能作为map对象的key，因为slice没有实现完全实现&lt;code&gt;==&lt;/code&gt;操作符，但是array可以。&lt;/h3&gt;
 &lt;p&gt;slice 只能使用&lt;code&gt;==&lt;/code&gt; 判断是否为nil。&lt;/p&gt;
-&lt;h2 id=&#34;slice-1&#34;&gt;slice 与内存模型&lt;/h2&gt;
+&lt;h2 id=&#34;slice--1&#34;&gt;slice 与内存模型&lt;/h2&gt;
 &lt;h3 id=&#34;append-&#34;&gt;append 不是线程安全的&lt;/h3&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
@@ -563,8 +795,15 @@ BenchmarkUnlockDirect-4         50000000                31.7 ns/op
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;一种可能的输出：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;[0 6 7 9]
-&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;axbyabsliceaxby&#34;&gt;a[x]与b[y]是否存在竟态，与a、b是否为同一slice无关，只与a[x]与b[y]是否指向同一块内存区域有关&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;[0 6 7 9]
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;axbyabsliceaxby&#34;&gt;a[x]与b[y]是否存在竟态，与a、b是否为同一slice无关，只与a[x]与b[y]是否指向同一块内存区域有关&lt;/h3&gt;
 &lt;p&gt;&lt;a href=&#34;https://golang.org/ref/spec#Variables&#34;&gt;golang language specification中关于variables的介绍&lt;/a&gt; 中有这样一句话&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;&lt;em&gt;Structured&lt;/em&gt; variables of &lt;a href=&#34;https://golang.org/ref/spec#Array_types&#34;&gt;array&lt;/a&gt;, &lt;a href=&#34;https://golang.org/ref/spec#Slice_types&#34;&gt;slice&lt;/a&gt;, and &lt;a href=&#34;https://golang.org/ref/spec#Struct_types&#34;&gt;struct&lt;/a&gt; types have elements and fields that may be &lt;a href=&#34;https://golang.org/ref/spec#Address_operators&#34;&gt;addressed&lt;/a&gt; individually. Each such element acts like a variable.&lt;/p&gt;
@@ -593,7 +832,28 @@ BenchmarkUnlockDirect-4         50000000                31.7 ns/op
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;pre&gt;&lt;code&gt;go run -race ./
+&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;go run -race ./
 2
 ==================
 WARNING: DATA RACE
@@ -610,7 +870,9 @@ Goroutine 6 (running) created at:
       /Users/vicxiao/workspace/go/test/main.go:10 +0x98
 ==================
 Found 1 data race(s)
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;如果将第5行&lt;code&gt;a[1]=0&lt;/code&gt; 替换为&lt;code&gt;a[0]=0&lt;/code&gt;，那么因为a[0]与b[0]指向的是不同内存区域，就不会有竟态发生。&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;如果将第5行&lt;code&gt;a[1]=0&lt;/code&gt; 替换为&lt;code&gt;a[0]=0&lt;/code&gt;，那么因为a[0]与b[0]指向的是不同内存区域，就不会有竟态发生。&lt;/p&gt;
 &lt;h2 id=&#34;byte&#34;&gt;与[]byte相关的性能问题&lt;/h2&gt;
 &lt;h3 id=&#34;slice-gc&#34;&gt;slice 引用底层数组而造成内存泄露/GC压力&lt;/h3&gt;
 &lt;p&gt;例如，使用&lt;code&gt;ioutil.ReadAll&lt;/code&gt;读取了一个10M的文件，并将其前512K切片为另外一个slice b使用。只要b还被引用，那么其指向的底层数组也不会被释放。&lt;/p&gt;
@@ -686,7 +948,20 @@ Found 1 data race(s)
 &lt;/div&gt;&lt;p&gt;注：&lt;/p&gt;
 &lt;p&gt;dst作为全局变量是防止编译器优化for-loop&lt;/p&gt;
 &lt;p&gt;测试时，机器不繁忙&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;uptime;go version;go test -bench=. ./
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;uptime;go version;go test -bench=. ./
  11:56:10 up 294 days, 14:58,  3 users,  load average: 0.58, 0.52, 0.63
 go version go1.14.1 linux/amd64
 goos: linux
@@ -695,7 +970,9 @@ pkg: copyvsappend
 BenchmarkCopy-40      	 9808320	       116 ns/op
 BenchmarkAppend-40    	  479055	      8740 ns/op
 PASS
-&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;readerreadfullioutilreadall&#34;&gt;如果知道Reader里的数据大小，使用&lt;code&gt;ReadFull&lt;/code&gt;而不是&lt;code&gt;ioutil.ReadAll&lt;/code&gt;&lt;/h3&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;readerreadfullioutilreadall&#34;&gt;如果知道Reader里的数据大小，使用&lt;code&gt;ReadFull&lt;/code&gt;而不是&lt;code&gt;ioutil.ReadAll&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;常见的场景如读取HTTP body。如果HTTP header中包含了&lt;code&gt;Content-Length&lt;/code&gt;那么我们先申请足够大小的内存，然后调用一次&lt;code&gt;io.ReadFull&lt;/code&gt; 是最佳的选择。如果我们使用&lt;code&gt;ioutil.ReadAll&lt;/code&gt; 则会发生多次不必要的内存申请和内存拷贝。因为&lt;code&gt;ReadAll&lt;/code&gt; 是以一个较小的buffer开始，不断地循环调用&lt;code&gt;ReadFull&lt;/code&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;channel&#34;&gt;channel&lt;/h2&gt;
 &lt;h3 id=&#34;groutine-channelsyncmutex&#34;&gt;当竞争很激烈时(groutine 大几千)，同样能保证线程安全，但是channel的性能会比sync.Mutex好？&lt;/h3&gt;
@@ -785,13 +1062,47 @@ PASS
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;pre&gt;&lt;code&gt;BenchmarkRangeIndex-4              10000            127986 ns/op
+&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;BenchmarkRangeIndex-4              10000            127986 ns/op
 BenchmarkRangeValue-4                 50          25939345 ns/op
 BenchmarkFor-4                     10000            127817 ns/op
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;embeding&#34;&gt;embeding&lt;/h2&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;embeding&#34;&gt;embeding&lt;/h2&gt;
 &lt;h3 id=&#34;stttss&#34;&gt;如果类型S内嵌了T，如果T定义函数接受者都是&lt;code&gt;*T&lt;/code&gt;类型，那么S定义的函数也应该以&lt;code&gt;*S&lt;/code&gt;为接受者为佳&lt;/h3&gt;
 &lt;p&gt;这个主要是防止引入bug，例如下面的并发控制器，错误地在外层将接受者定义为值类型。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;type ConcurrentLocker struct{
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;type ConcurrentLocker struct{
 	sync.Map
 }
 
@@ -808,14 +1119,25 @@ func (cl ConcurrentLocker) Enter(key string) (bool, LeaveFunc) {
 
 func main() {
 	cl := ConcurrentLocker{}
-	key := &amp;quot;some-key&amp;quot;
+	key := &amp;#34;some-key&amp;#34;
 	fmt.Println(cl.Enter(key))
 	fmt.Println(cl.Enter(key))
 }
-&lt;/code&gt;&lt;/pre&gt;&lt;pre&gt;&lt;code&gt;$ go run ./
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;$ go run ./
 true 0x10939e0
 true 0x10939e0
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;当然修复的办法可以是内嵌&lt;code&gt;* sync.Map&lt;/code&gt;, 但是这样初始化的时候不够优雅，还需要单独初始化内部的map指针。我个人更倾向于与将&lt;code&gt;Enter&lt;/code&gt; 的接受者申明为&lt;code&gt;* ConcurrentLocker&lt;/code&gt;, 这样既逻辑正确，其作为整体暴露的函数的接受者也统一。&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;当然修复的办法可以是内嵌&lt;code&gt;* sync.Map&lt;/code&gt;, 但是这样初始化的时候不够优雅，还需要单独初始化内部的map指针。我个人更倾向于与将&lt;code&gt;Enter&lt;/code&gt; 的接受者申明为&lt;code&gt;* ConcurrentLocker&lt;/code&gt;, 这样既逻辑正确，其作为整体暴露的函数的接受者也统一。&lt;/p&gt;
 &lt;h2 id=&#34;heading&#34;&gt;参考资料&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&#34;https://golang.org/doc/effective_go.html&#34;&gt;https://golang.org/doc/effective_go.html&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;a href=&#34;https://golang.org/ref/mem&#34;&gt;https://golang.org/ref/mem&lt;/a&gt;&lt;/p&gt;
@@ -886,18 +1208,18 @@ true 0x10939e0
       
         <description>&lt;h2 id=&#34;heading&#34;&gt;为什么要做定投？&lt;/h2&gt;
 &lt;p&gt;我目前投资方式比较简单，基本上以招商银行的定期理财为主，年化收益率&lt;strong&gt;接近4%&lt;/strong&gt;，剩余部分则是一些T+0或者T+1的货币基金，比如支付宝，收益更低&lt;strong&gt;不到3%&lt;/strong&gt;。而&lt;a href=&#34;https://www.ceicdata.com/zh-hans/indicator/china/consumer-price-index-cpi-growth&#34;&gt;2019-12 CPI已经高到4.5%&lt;/a&gt;，跑输了通胀。 决定要参入到股市之中，承担市场经济发展的风险，也享受相等的回报。之前短暂的做过短线，赶上大盘整体回升，收益还不错，也明显跑赢了大盘，但是需要的精力太多，目前看来没有足够的精力继续操作短线。想参入股市，那我目前的选择只能是投资基金。基金做短线，收益不大，因为我只参与指数基金，而指数基金的短期振幅不会很大，没有盈利空间。如果花时间挑选一些其它板块、主题的基金，找出振幅大的，那还不如花时间做个股的短线。综上我决定定投指数基金，作为一种长期的理财方式。&lt;/p&gt;
-&lt;h2 id=&#34;heading1&#34;&gt;场内基金还是场外基金？&lt;/h2&gt;
+&lt;h2 id=&#34;heading-1&#34;&gt;场内基金还是场外基金？&lt;/h2&gt;
 &lt;p&gt;为方便比较，找一个常见的沪深300类的场外基金做对比。&lt;/p&gt;
 &lt;p&gt;天弘沪深300ETF链接C， 买入费率0，管理费0.5%（每年），托管费0.1%（每年），销售服务费0.2%（每年），持有天数&amp;gt;7日则卖出费率为0，那么持有1年，3年，5年的大致费率为，0.8%，2.4%， 4%。&lt;/p&gt;
 &lt;p&gt;如果我们直接购买300ETF，假设每次定投金额小于1万，则收取5元的佣金（ETF只收取佣金，没有印花税、过户费之类），如果是1000元的ETF， 那么持有1年、3年、5年的费率大致为， 1%, 1%, 1%。如果一次购买约2000的ETF， 则费率降低至0.5%， 0.5%， 0.5%。&lt;/p&gt;
 &lt;p&gt;从上面的对比中可以看出&lt;strong&gt;直接购买ETF有明显的费率优势，这种优势会随着持有时间的增加和投资金额的增大而愈发明显&lt;/strong&gt;。既然我打算长期定投，那我肯定&lt;strong&gt;选择ETF&lt;/strong&gt;了。当然由于像股票一样，ETF的买卖单位是100份的整数倍，操作起来相对会麻烦一点。&lt;/p&gt;
-&lt;h2 id=&#34;heading2&#34;&gt;定投方式与金额&lt;/h2&gt;
+&lt;h2 id=&#34;heading-2&#34;&gt;定投方式与金额&lt;/h2&gt;
 &lt;p&gt;由于时间精力有限，并且计划长期定投，所以我决定只关注300ETF和500ETF。既然是投资，那么一定不能囫囵吞枣，更不能道听途说，一定要想明白什么情况下能赚钱，什么情况下亏损的可能性大。&lt;/p&gt;
 &lt;p&gt;投资赚钱的本质是&lt;strong&gt;低买高卖&lt;/strong&gt;。实际操作中的难点在于未来的不确定性。高和低是相对概念，没有绝对值可以参考，因为未来的不确定性、低买高卖就是一种博弈。是期望值和实际值之间的博弈，是一种赌博。&lt;/p&gt;
-&lt;h3 id=&#34;heading3&#34;&gt;定投是怎么运作的，怎么选择定投目标，什么时候卖出？&lt;/h3&gt;
+&lt;h3 id=&#34;heading-3&#34;&gt;定投是怎么运作的，怎么选择定投目标，什么时候卖出？&lt;/h3&gt;
 &lt;p&gt;定投最根本的假设是，&lt;strong&gt;市场是波动的&lt;/strong&gt;。通过定时定额（投资金额）的投资投资方式，在市价低时候多买入，而在市价高少买入，从而在整体上降低持仓成本，降低亏损的风险，当然利益相对最优解也会变少。&lt;strong&gt;可以这么理解，市场的振幅越大，定投的收益空间越大&lt;/strong&gt;。这个很好理解，如果市场毫无波澜，那么定投根本没有盈利空间，反而会亏损手续费，另外只要收益率低于银行定期存款的其实都是亏损。反之，假设市场是波动的，举个比较简单的具体例子，假设市价按照1、2、1、2这样周期性波动，那么定投的持仓成本就接近于1.5，只要市场保持波动，那么我们就有在市价为2的时候出手的机会，也就有盈利的机会。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;市场必然是波动的&lt;/strong&gt;，只要我们有耐心（对定投的这笔资金流动性要求不高），我们就能等到卖出价高于持仓成本的时机。当然这个前提你选的基本不能在你的投资周期内整体上程明显的下跌趋势。我们需要一个&lt;strong&gt;具有周期性&lt;/strong&gt;的基金来做定投，而指数基金就是一个不错的选择。&lt;em&gt;TODO：有空我会花的时间研究下其它的基金，说不定有同样具有稳定周期，但是周期性更短的基金&lt;/em&gt;。&lt;/p&gt;
-&lt;h3 id=&#34;heading4&#34;&gt;上证综合指数变化&lt;/h3&gt;
+&lt;h3 id=&#34;heading-4&#34;&gt;上证综合指数变化&lt;/h3&gt;
 &lt;p&gt;从2001年初到2019年底之间，出现了两个牛市。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200116133847.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;再看近几年，最高点在2015.06 为5178。这波牛市持续了半年，成交量大市场活跃。之后跳水，从2016.01至今没有太大波澜。2019年年初市场活跃了一波。&lt;/p&gt;
@@ -908,13 +1230,13 @@ true 0x10939e0
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119132608.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;500ETF&lt;/strong&gt;，似乎还很有空间。如果三年内从6.0升到9.0，持仓成本按照7.5计算的话，那么收益率为6.7%左右。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119132735.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading5&#34;&gt;综上、具体操作方式&lt;/h3&gt;
-&lt;h4 id=&#34;heading6&#34;&gt;买入&lt;/h4&gt;
+&lt;h3 id=&#34;heading-5&#34;&gt;综上、具体操作方式&lt;/h3&gt;
+&lt;h4 id=&#34;heading-6&#34;&gt;买入&lt;/h4&gt;
 &lt;p&gt;&lt;strong&gt;定投时间为发放工资的下个交易日&lt;/strong&gt;。&lt;/p&gt;
 &lt;p&gt;以500ETF为主，2k左右做“定投”。正常情况以成交价&amp;lt;=2k为界（基本上就是3手），如果价格低于5.8则买4手（稍大于2K）。 平时（非定投范围）如果遇到&amp;lt;5的情况，时情况加仓1~2手。
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200119134608.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;300ETF不做定投，按月观察，如果市价＜3.7 （理想情况&amp;lt;3.5）视情况买入3手，单月最多投资一次。&lt;/p&gt;
-&lt;h4 id=&#34;heading7&#34;&gt;卖出&lt;/h4&gt;
+&lt;h4 id=&#34;heading-7&#34;&gt;卖出&lt;/h4&gt;
 &lt;p&gt;由于市场周期性的存在，我们需要在一个合适时间点将基金卖出，从而尽可能的实现利益最大化。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;300ETF&lt;/strong&gt;4.3是一个参考点。&lt;br&gt;
 &lt;strong&gt;500ETF&lt;/strong&gt;7.0， 8.0，9.0 三个参考点，要求年化&amp;gt;10%&lt;br&gt;
@@ -963,7 +1285,21 @@ true 0x10939e0
 &lt;li&gt;读写速度。&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;可以从&lt;a href=&#34;https://gist.github.com/jboner/2841832&#34;&gt;下表&lt;/a&gt;中大致知道HDD的性能与其它存储介质的差距。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;Latency Comparison Numbers (~2012)
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;Latency Comparison Numbers (~2012)
 --------------------------
 Main memory reference                      100   ns
 Send 1 KB bytes over 1 Gbps network     10,000   ns       10 us
@@ -973,7 +1309,9 @@ Read 1 MB sequentially from SSD*     1,000,000   ns    1,000 us    1 ms  ~1GB/se
 Disk seek                           10,000,000   ns   10,000 us   10 ms 
 Read 1 MB sequentially from 1 Gbps  10,000,000   ns   10,000 us   10 ms  40x memory, 10X SSD
 Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x memory, 30X SSD
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;寻址（含寻道）时间10ms，而连续读取1MB（以512B算，2K个扇区）的数据却只需要30ms。&lt;strong&gt;机械磁盘的平均寻道时间是不可忽略的&lt;/strong&gt;&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;寻址（含寻道）时间10ms，而连续读取1MB（以512B算，2K个扇区）的数据却只需要30ms。&lt;strong&gt;机械磁盘的平均寻道时间是不可忽略的&lt;/strong&gt;&lt;/p&gt;
 &lt;h3 id=&#34;linux&#34;&gt;Linux文件系统与文件查找&lt;/h3&gt;
 &lt;p&gt;提及Linux文件系统，必然绕不开VFS（Virtual Filesystem Switch）。VFS对下为不同具体的文件系统抽象出一套通用的数据结构和操作函数，对上为用户态应用层程序屏蔽底层文件系统的细节而使用一套通用的接口进行交互。注意，本问题及的文件系统均指非纯内存的文件系统，如ext2、nfs等，而类似procfs、sysfs、tmpfs这种纯内存文件系统不在本文的讨论范围，也不是haystack论文优化的对象。&lt;/p&gt;
 &lt;p&gt;VFS定义了四个基本对象，&lt;em&gt;superblock&lt;/em&gt;, &lt;em&gt;inode&lt;/em&gt;, &lt;em&gt;file&lt;/em&gt;, &lt;em&gt;dentry&lt;/em&gt;。其中：&lt;em&gt;superblock&lt;/em&gt; 用于描述&lt;strong&gt;文件系统&lt;/strong&gt;的元信息；&lt;em&gt;inode&lt;/em&gt; 用于描述&lt;strong&gt;文件&lt;/strong&gt;的元信息(如大小等）；&lt;em&gt;file&lt;/em&gt; 对象和具体进程关联，表示其&lt;strong&gt;打开&lt;/strong&gt;的一个文件和该进程关系（如打开方式、当前读写位置等）；&lt;em&gt;dentry&lt;/em&gt; 表示一个具体的目录项与实际文件的关系（指向某个_inode_）。这四者和进程间的关系如下图所示。
@@ -994,7 +1332,7 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
 &lt;/ol&gt;
 &lt;p&gt;&lt;strong&gt;那么为什么CDN不能解决Facebook图片分发的问题？&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;按照haystack论文中所述，CDN中只缓存了少部分访问频繁的文件，而低频的访问数量巨大，如果将所有的文件都缓存进CDN，虽然理论可行但是成本过高不符合实际。这个现象也叫做&lt;a href=&#34;https://zh.wikipedia.org/wiki/%E9%95%BF%E5%B0%BE&#34;&gt;长尾效应&lt;/a&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading1&#34;&gt;核心思想&lt;/h3&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;核心思想&lt;/h3&gt;
 &lt;p&gt;在使用haystack之前，Facebook的图片系统使用如下图所示的架构，即若干图片服务器通过NFS的方式挂载了数个NAS存储。Facebook并没有公布其使用的NASA上具体的软件系统，不过从文章的描述来看，即使不能肯定这些NAS是Linux系统，也可以确定他们有类似上文描述的文件访问过程，即在读取文件内容之前需要先进行一次IO将对应的inode加载进内存之中。对于我们读者来说，这些NAS系统的细节我们并不需要关心，我们可以假设这些NAS就是一些Linux系统，这并不妨碍我们理解haystack的整体设计。
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200201185805.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h4 id=&#34;io&#34;&gt;读取一张图片，需要多少次IO操作？&lt;/h4&gt;
@@ -1005,7 +1343,7 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
 &lt;p&gt;假设文件存放在多级目录中，在查找文件时，路径中的每一项都需要别解析成一个dentry对象，如果没有被dcache缓存住，那么也需要从磁盘加载对应的inode，也就是需要一次IO操作。同时，如果目录下的文件太多，以至于有些文件存放到目录的二级甚至三级数据索引中，并且由于目录项的查找是简单的遍历，那么需要更多的IO操作。通过调整目录项的大小或者使用更先进的一些文件系统（一些采用b-tree的文件系统），文件查找需要的IO操作可能会更小，但是我们可以认为对于一个文件至一次以上的磁盘操作用于读取其inode。&lt;/p&gt;
 &lt;p&gt;我们知道哪怕仅仅是从磁盘读取一个扇区的数据，磁盘寻址时间也是一个不可忽略的开销。对于数据不大的图片而言，我们可以粗略认为有一半的额外开销都花在了读取文件的元信息之上。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;haystack的主要贡献也就是提出了一种将所有图片的元信息都缓存进内存，从而加速小文件读取的优化方法。&lt;/strong&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading2&#34;&gt;架构&lt;/h3&gt;
+&lt;h3 id=&#34;heading-2&#34;&gt;架构&lt;/h3&gt;
 &lt;p&gt;Haystack是一个分布式对象存储，主要包含三个模块：Directory、Cache和Storage。其中，Directory是一个元数据管理服务，Cache是数据缓存，而Storage是数据最终的存放地点。
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200202165747.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;（由于工作原因没有时间写细节了，以后如果再搞存储会回来补充完整。）&lt;/p&gt;
@@ -1013,7 +1351,7 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
 &lt;h4 id=&#34;directory&#34;&gt;Directory&lt;/h4&gt;
 &lt;h4 id=&#34;cache&#34;&gt;Cache&lt;/h4&gt;
 &lt;h2 id=&#34;10haystack&#34;&gt;过去10年了，haystack还适用吗？&lt;/h2&gt;
-&lt;h2 id=&#34;heading3&#34;&gt;参考文献&lt;/h2&gt;
+&lt;h2 id=&#34;heading-3&#34;&gt;参考文献&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;&lt;a href=&#34;https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf&#34;&gt;haystack&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;《Understanding the Linux kernel》&lt;/li&gt;
@@ -1030,10 +1368,10 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
       
         <description>&lt;h2 id=&#34;heading&#34;&gt;起因&lt;/h2&gt;
 &lt;p&gt;家里的WiFi总是过一点时间就会很卡，让人不爽！&lt;/p&gt;
-&lt;h3 id=&#34;heading1&#34;&gt;网络布局&lt;/h3&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;网络布局&lt;/h3&gt;
 &lt;p&gt;家里的网络布局和大多数普通家庭类似， 一个&lt;strong&gt;200M的电信宽带&lt;/strong&gt;接上一个路由器
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225233420.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading2&#34;&gt;排障流程&lt;/h3&gt;
+&lt;h3 id=&#34;heading-2&#34;&gt;排障流程&lt;/h3&gt;
 &lt;p&gt;从拓扑图看，设备接入互联网慢可能是两个组件有问题：电信光猫或者路由器。&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;路由器问题？&lt;/li&gt;
@@ -1059,8 +1397,8 @@ Read 1 MB sequentially from disk    30,000,000   ns   30,000 us   30 ms 120x mem
 &lt;p&gt;两个方案都不可行。但是在电信的测速界面看到一个非常有趣的提醒，大意是“现在测速结果偏慢，但是要在重启网关之后才能保证测速准确哦”。试着重启了光猫后，还真有效！
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225235959.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;如果我们假设重启光猫后网速能回归正常，那问题转变成如何自动重启光猫&lt;/strong&gt;&lt;/p&gt;
-&lt;h2 id=&#34;heading3&#34;&gt;通过路由器的剩余计算能力闲时自动重启光猫&lt;/h2&gt;
-&lt;h3 id=&#34;heading4&#34;&gt;如何自动重启光猫&lt;/h3&gt;
+&lt;h2 id=&#34;heading-3&#34;&gt;通过路由器的剩余计算能力闲时自动重启光猫&lt;/h2&gt;
+&lt;h3 id=&#34;heading-4&#34;&gt;如何自动重启光猫&lt;/h3&gt;
 &lt;p&gt;&lt;strong&gt;家里的光猫可以通过web界面重启&lt;/strong&gt;， 那只需要抓包破解重启通信协议即可达成目标。&lt;/p&gt;
 &lt;p&gt;本文中的光猫管理界面如下图所示：
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191225224609.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
@@ -1093,11 +1431,18 @@ curl &lt;span class=&#34;s1&#34;&gt;&amp;#39;http://192.168.1.1/gatewayManage.cm
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;执行后打印的http body如下，&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;{ &amp;quot;ID&amp;quot;: 123, &amp;quot;_Source&amp;quot;: 0, &amp;quot;Result&amp;quot;: 0, &amp;quot;return_Parameter&amp;quot;: &amp;quot;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;quot; }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;其中 &lt;code&gt;return_Parameter&lt;/code&gt; base64解码后为&lt;code&gt;{ &amp;quot;CmdType&amp;quot;: &amp;quot;HG_COMMAND_REBOOT&amp;quot;, &amp;quot;SequenceId&amp;quot;: null, &amp;quot;Status&amp;quot;: &amp;quot;0&amp;quot; }&lt;/code&gt;。 根据经验，一般0表示执行成功。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;{ &amp;#34;ID&amp;#34;: 123, &amp;#34;_Source&amp;#34;: 0, &amp;#34;Result&amp;#34;: 0, &amp;#34;return_Parameter&amp;#34;: &amp;#34;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;#34; }
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;其中 &lt;code&gt;return_Parameter&lt;/code&gt; base64解码后为&lt;code&gt;{ &amp;quot;CmdType&amp;quot;: &amp;quot;HG_COMMAND_REBOOT&amp;quot;, &amp;quot;SequenceId&amp;quot;: null, &amp;quot;Status&amp;quot;: &amp;quot;0&amp;quot; }&lt;/code&gt;。 根据经验，一般0表示执行成功。&lt;/p&gt;
 &lt;p&gt;执行后光猫的管理界面便不能打开，一小段时间之后才能再次反问。通过查看光猫的运行状态（运行时间），证实了刚才的重启是有效的！
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191226002901.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading5&#34;&gt;如何通过路由器自动定时重启光猫？&lt;/h3&gt;
+&lt;h3 id=&#34;heading-5&#34;&gt;如何通过路由器自动定时重启光猫？&lt;/h3&gt;
 &lt;p&gt;&lt;strong&gt;路由器&lt;/strong&gt;（注意不是光猫）可以ssh登录, 有一个精简的linux系统，有一整套的busybox。路由器也刷了梅林固件，当然也可以安装其他软件，甚至Python。解决方案多种多样，比如下面的shell 脚本。&lt;a href=&#34;https://www.shellscript.sh/&#34;&gt;shell 脚本教程&lt;/a&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
@@ -1146,9 +1491,17 @@ curl &lt;span class=&#34;s1&#34;&gt;&amp;#39;http://192.168.1.1/gatewayManage.cm
 &lt;li&gt;
 &lt;p&gt;脚本需要放到一个&lt;strong&gt;非临时存储&lt;/strong&gt;，注意不要保存在路由器的tmpfs&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;pre&gt;&lt;code&gt;admin@RT-AC68P:/tmp/home/root# ls -l /root
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;admin@RT-AC68P:/tmp/home/root# ls -l /root
 lrwxrwxrwx    1 admin    root            13 Sep 21 14:13 /root -&amp;gt; tmp/home/root
-&lt;/code&gt;&lt;/pre&gt;&lt;/blockquote&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/blockquote&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;使用 &lt;code&gt;nohup&lt;/code&gt; 来保证脚本持续运行。 当然也可以研究下你的路由器支持哪种开机自动运行的能力(比如&lt;code&gt;/etc/init.d&lt;/code&gt;)&lt;/p&gt;
@@ -1202,10 +1555,19 @@ cru a rebootmodem &lt;span class=&#34;s2&#34;&gt;&amp;#34;0 4 * * * /jffs/script
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;&lt;strong&gt;最后附上次日清晨的日志文件内容，证明整个方案是可靠的&lt;/strong&gt;&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;admin@RT-AC68P:/tmp/home/root# cat /tmp/modem_reboot.log
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;admin@RT-AC68P:/tmp/home/root# cat /tmp/modem_reboot.log
 Sat Dec 28 04:00:01 GMT 2019
-{ &amp;quot;ID&amp;quot;: 123, &amp;quot;_Source&amp;quot;: 0, &amp;quot;Result&amp;quot;: 0, &amp;quot;return_Parameter&amp;quot;: &amp;quot;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;quot; }
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191228102807.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</description>
+{ &amp;#34;ID&amp;#34;: 123, &amp;#34;_Source&amp;#34;: 0, &amp;#34;Result&amp;#34;: 0, &amp;#34;return_Parameter&amp;#34;: &amp;#34;eyAiQ21kVHlwZSI6ICJIR19DT01NQU5EX1JFQk9PVCIsICJTZXF1ZW5jZUlkIjogbnVsbCwgIlN0YXR1cyI6ICIwIiB9&amp;#34; }
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20191228102807.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</description>
       
     </item>
     
@@ -1219,12 +1581,12 @@ Sat Dec 28 04:00:01 GMT 2019
         <description>&lt;h2 id=&#34;heading&#34;&gt;协议特点&lt;/h2&gt;
 &lt;p&gt;简单地对IP协议进行了一层包裹，添加了源、目的地端口，从而支持了多路复用、多路分解. 协议本身没有流控测流和拥塞控制策略。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/udp-header.png&#34; alt=&#34;UDP 包头&#34;&gt;&lt;/p&gt;
-&lt;h3 id=&#34;heading1&#34;&gt;好处&lt;/h3&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;好处&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;首部小， UDP 8字节， TCP20字节&lt;/li&gt;
 &lt;li&gt;应用层能更加精确地控制发送数据的时间&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h3 id=&#34;heading2&#34;&gt;缺点，使用注意事项&lt;/h3&gt;
+&lt;h3 id=&#34;heading-2&#34;&gt;缺点，使用注意事项&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;不可靠。协议本身不保证应用层的数据，一定能完全达到目的地。但是每个UDP 包裹本身是数据是不会出错（UDP本身有校验和）&lt;/li&gt;
 &lt;li&gt;在网络上可能被很多节点的防火墙禁用掉&lt;/li&gt;

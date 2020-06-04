@@ -32,7 +32,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.60.1" />
+<meta name="generator" content="Hugo 0.61.0" />
 
 
 <link rel="canonical" href="http://auntlei.com/post/source/boltdb_2/" />
@@ -53,7 +53,7 @@
 
 
 
-<link rel="stylesheet" href="/sass/jane.min.fa3d941d1d0e0ddc985804227feabffea55c89883eb0af34e0532a7ae9135151.css" integrity="sha256-&#43;j2UHR0ODdyYWAQif&#43;q//qVciYg&#43;sK804FMqeukTUVE=" media="screen" crossorigin="anonymous">
+<link rel="stylesheet" href="/sass/jane.min.0995afa14b62cd93e93cfc066b646c4c17a3eddca0e9d52a1d9dcf5d90aaacd3.css" integrity="sha256-CZWvoUtizZPpPPwGa2RsTBej7dyg6dUqHZ3PXZCqrNM=" media="screen" crossorigin="anonymous">
 
 
 
@@ -325,15 +325,15 @@
     <li><a href="#lmdb-">LMDB 核心思想</a>
       <ul>
         <li><a href="#heading">性能（缓存）</a></li>
-        <li><a href="#heading1">数据一致性</a></li>
+        <li><a href="#heading-1">数据一致性</a></li>
       </ul>
     </li>
     <li><a href="#boltdb">boltdb实现</a>
       <ul>
-        <li><a href="#heading2">数据持久化</a></li>
+        <li><a href="#heading-2">数据持久化</a></li>
       </ul>
     </li>
-    <li><a href="#heading5">参考资料</a></li>
+    <li><a href="#heading-5">参考资料</a></li>
   </ul>
 </nav>
   </div>
@@ -364,13 +364,13 @@
 <p>影响性能有很多方面，这里只讨论缓存设计，对于读写竞争不做介绍。下文会介绍写时拷贝b+树，而写时拷贝自然而然也就实现了<a href="https://en.wikipedia.org/wiki/Multiversion_concurrency_control">MVCC（Multiversion concurrency control</a>。</p>
 <p>Howard Chu（LMDB作者）介绍在设计LMDB之前，他和其他人一样使用著名的<a href="https://en.wikipedia.org/wiki/Berkeley_DB">Berkeley DB（BDB）</a>。但是BDB有三层缓存系统，对这套复杂系统进行调优需要花很多时间，并且可能造成一些意想不到的结果，比如数据库死锁，而LMDB使用mmap则不需要额外的缓存系统就可以带来理想的性能收益，数据库配置也变得更加简单。这也是核心思想中的第1点。</p>
 <p>此外LMDB中mmap采用了只读方式，直接写内存中的数据会产生段错误（SEGV），这样的好处是在迭代开发的过程中，可以快速发现逻辑错误。那么怎么更新数据呢？blotdb采用的是直接写文件+fsync的方式。</p>
-<h3 id="heading1">数据一致性</h3>
+<h3 id="heading-1">数据一致性</h3>
 <p>性能只是数据库设计的一方面，另一方面是对事务ACID特性的保证。LMDB使用写时拷贝B+树，在介绍它之前，我们可以先了解下其它技术。</p>
 <h4 id="wal">WAL</h4>
 <p>BDB及其他数据库多使用<a href="https://en.wikipedia.org/wiki/Write-ahead_logging">WAL</a>来保证数据的一致性。WAL是指描述改动的操作记录必须先被持久化到磁盘上之后，才能修改对应的值并提交整个事务。当数据处于不一致的状态时（比如处理事务过程中宕机后重启），可以通过回扫操作记录将数据库恢复到一个一致的状态。</p>
 <p>下图描述了往一个空的key-value 数据库中<code>put(key-1,value-1)</code>过程中WAL与数据修改之间的关系。注意这个只是概念演示，不同的数据库实现有不同的方式。</p>
 <p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410133805.png" alt=""></p>
-<h4 id="bappendonly-b-tree">只追加B+树（append-only B+ tree）</h4>
+<h4 id="bappend-only-b-tree">只追加B+树（append-only B+ tree）</h4>
 <p>WAL的方式中数据和数据操作（日志）是分开的，而只追加B+树则不需要额外的日志。下面举例说明</p>
 <p>假设现有一个三层B+树组织的数据</p>
 <p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200410125417.png" alt=""></p>
@@ -415,8 +415,8 @@
 </ul>
 </li>
 </ul>
-<h3 id="heading2">数据持久化</h3>
-<h4 id="heading3">数据结构</h4>
+<h3 id="heading-2">数据持久化</h3>
+<h4 id="heading-3">数据结构</h4>
 <p>这里不包括B+树相关的持久化方式，此部分在后续介绍B+树管理数据部分会详细介绍。</p>
 <p><strong>page（页）</strong></p>
 <p>bolt管理文件数据的基本单位，单位大小等同于操作系统页大小。包含头部（header) 与数据区（data)两部分。</p>
@@ -464,12 +464,12 @@
 <li>root 此bucket根节点所在的页ID</li>
 <li>sequence 用于实现单个bucket的自增序列</li>
 </ul>
-<h4 id="heading4">物理布局</h4>
+<h4 id="heading-4">物理布局</h4>
 <p>其他使用只追加B+树的数据库，元信息页一般在文件的最后几个块，进行数据恢复时只需要从后完前找到第一个正确的元信息页就可以恢复整个数据库。</p>
 <p>而boltdb其两个元信息页位于文件的最开始两页。数据库启动（恢复时）只需要验证前两页就能恢复整个数据库。</p>
 <p><img src="https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200412112324.png" alt=""></p>
 <p>元信息页（meta page)作为数据库的入口，通过保存root bucket的页地址将数据的所有地址串联起来，而保存freelist page的页地址则将所有的空闲页串联起来。</p>
-<h2 id="heading5">参考资料</h2>
+<h2 id="heading-5">参考资料</h2>
 <p><a href="https://www.infoq.com/presentations/lmdb-lighting-memory-mapped-database/#downloadPdf/">Howard Chu 关于LMDB的演讲</a></p>
 <p><a href="http://www.bzero.se/ldapd/btree.html">how the append-only btree works</a></p>
     </div>
