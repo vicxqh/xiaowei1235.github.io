@@ -5,7 +5,7 @@
     <link>http://auntlei.com/</link>
     <description>Recent content on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 04 Jun 2020 10:43:05 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 03 Sep 2020 14:50:13 +0800</lastBuildDate>
     
         <atom:link href="http://auntlei.com/index.xml" rel="self" type="application/rss+xml" />
     
@@ -27,6 +27,42 @@
 &lt;/ul&gt;
 &lt;p&gt;Learn more and contribute on &lt;a href=&#34;https://github.com/gohugoio&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
 </description>
+      
+    </item>
+    
+    <item>
+      <title>《Docker Deep Dive》读书笔记</title>
+      <link>http://auntlei.com/post/reading/dockerdeepdive/</link>
+      <pubDate>Thu, 03 Sep 2020 14:50:13 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/dockerdeepdive/</guid>
+      
+        <description>&lt;h2 id=&#34;heading&#34;&gt;总结&lt;/h2&gt;
+&lt;p&gt;本书比较浅显，介绍了Docker的组成，并简单地介绍了工作原理。阅读次数，有助于理解Docker技术中的几个关键概念，比如Image、Container，Swarm, overlay network。&lt;/p&gt;
+&lt;p&gt;下一步计划阅读、学习kubernetes。&lt;/p&gt;
+&lt;h2 id=&#34;heading-1&#34;&gt;重要章节笔记&lt;/h2&gt;
+&lt;h3 id=&#34;5-the-docker-engine&#34;&gt;5. The Docker Engine&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;dockercli 作为用户交互的入口将dockerd的接口封装之后暴露给用户使用&lt;/li&gt;
+&lt;li&gt;dockerd 更像是一个网关服务，接受dockercli的请求并将其转发给后端containerd&lt;/li&gt;
+&lt;li&gt;containerd 负责管理容器的生命周期、以及镜像、网络等事务&lt;/li&gt;
+&lt;li&gt;runc作为独立的程序被containerd用于启动运行容器&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200927122808.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;6-images&#34;&gt;6. Images&lt;/h3&gt;
+&lt;p&gt;Image 是一个静态的描述文件，类似VM template（注意不是VM snapshot， Image并不能表达出内存所处的状态），而container则是从image创建而来的运行态的“应用容器”。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200927122943.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200927142837.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;一个image由若干个&lt;strong&gt;只读&lt;/strong&gt;层组成，位于上层的文件将隐藏下层的同名文件。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200927123132.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;8-containerizing-an-app&#34;&gt;8 containerizing an app&lt;/h3&gt;
+&lt;p&gt;DockerFile 描述了如何创建一个image。这些指令可以分为两类，一类会创建新的层，而另一类则仅仅是添加元数据。要注意如何编写DockerFile来优化镜像大小。&lt;/p&gt;
+&lt;h3 id=&#34;9-swarm-mode&#34;&gt;9 Swarm Mode&lt;/h3&gt;
+&lt;p&gt;Docker的集群模式。参与到swarm中的节点被分为manager 和worker。manager 负责管理整个集群（docker的术语为swarm），具体管理哪些书本并没有细说，不过这个不重要。和其它系统一样，manager就是一个高可用的管理服务，而worker则是无状态的（？）的执行任务的工具人。&lt;/p&gt;
+&lt;p&gt;Swarm模式为了保证高可用，使用了etcd。&lt;/p&gt;
+&lt;h3 id=&#34;10-docker-overlay-network&#34;&gt;10 Docker overlay network&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200929144523.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;docker overlay network 是一个在docker节点之间基于应用层网络虚拟出来的2层&lt;a href=&#34;https://www.practicalnetworking.net/stand-alone/vlans/&#34;&gt;vlan&lt;/a&gt;，使得位于不同物理节点上的container处于同一个虚拟的2层子网之中。如何在应用层实现vlan则依赖&lt;a href=&#34;https://en.wikipedia.org/wiki/Virtual_Extensible_LAN&#34;&gt;vxlan&lt;/a&gt; 技术。这种软件定义的网络（SDN）可以拥有更多的特性，比如通过加密来保证通信安全。&lt;/p&gt;</description>
       
     </item>
     
