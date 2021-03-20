@@ -10,34 +10,90 @@
   
   <url>
     <loc>http://auntlei.com/categories/</loc>
-    <lastmod>2020-09-03T14:50:13+08:00</lastmod>
+    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/tags/golang/</loc>
+    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://auntlei.com/post/</loc>
-    <lastmod>2020-09-03T14:50:13+08:00</lastmod>
+    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://auntlei.com/post/reading/dockerdeepdive/</loc>
-    <lastmod>2020-09-03T14:50:13+08:00</lastmod>
+    <loc>http://auntlei.com/tags/</loc>
+    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/post/net/srp/</loc>
+    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/tags/%E7%BD%91%E7%BB%9C/</loc>
+    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/categories/%E7%BD%91%E7%BB%9C/</loc>
+    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://auntlei.com/</loc>
-    <lastmod>2020-09-03T14:50:13+08:00</lastmod>
+    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/tags/mysql/</loc>
+    <lastmod>2021-01-26T10:44:14+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/post/reading/highperfmysql/</loc>
+    <lastmod>2021-01-26T10:44:14+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://auntlei.com/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/</loc>
+    <lastmod>2021-01-26T10:44:14+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/post/reading/kubernetes/</loc>
+    <lastmod>2020-10-09T15:50:47+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/post/reading/dockerdeepdive/</loc>
     <lastmod>2020-09-03T14:50:13+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -80,20 +136,6 @@
   
   <url>
     <loc>http://auntlei.com/post/source/boltdb_4/</loc>
-    <lastmod>2020-04-02T17:07:20+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://auntlei.com/tags/golang/</loc>
-    <lastmod>2020-04-02T17:07:20+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://auntlei.com/tags/</loc>
     <lastmod>2020-04-02T17:07:20+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -234,20 +276,6 @@
   
   <url>
     <loc>http://auntlei.com/post/net/udp/</loc>
-    <lastmod>2019-12-20T13:26:45+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://auntlei.com/categories/%E7%BD%91%E7%BB%9C/</loc>
-    <lastmod>2019-12-20T13:26:45+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://auntlei.com/tags/%E7%BD%91%E7%BB%9C/</loc>
     <lastmod>2019-12-20T13:26:45+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>

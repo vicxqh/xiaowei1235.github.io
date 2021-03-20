@@ -69,7 +69,7 @@
 <meta itemprop="description" content="">
 <meta itemprop="datePublished" content="2020-03-30T22:17:34&#43;08:00" />
 <meta itemprop="dateModified" content="2020-03-30T22:17:34&#43;08:00" />
-<meta itemprop="wordCount" content="2350">
+<meta itemprop="wordCount" content="2848">
 
 
 
@@ -362,6 +362,11 @@
     <li><a href="#embeding">embeding</a>
       <ul>
         <li><a href="#stttss">如果类型S内嵌了T，如果T定义函数接受者都是*T类型，那么S定义的函数也应该以*S为接受者为佳</a></li>
+      </ul>
+    </li>
+    <li><a href="#interface">interface</a>
+      <ul>
+        <li><a href="#nilnil">动态值为nil的接口值不为nil</a></li>
       </ul>
     </li>
     <li><a href="#heading">参考资料</a></li>
@@ -900,6 +905,46 @@ true 0x10939e0
 </code></pre></td></tr></table>
 </div>
 </div><p>当然修复的办法可以是内嵌<code>* sync.Map</code>, 但是这样初始化的时候不够优雅，还需要单独初始化内部的map指针。我个人更倾向于与将<code>Enter</code> 的接受者申明为<code>* ConcurrentLocker</code>, 这样既逻辑正确，其作为整体暴露的函数的接受者也统一。</p>
+<h2 id="interface">interface</h2>
+<h3 id="nilnil">动态值为nil的接口值不为nil</h3>
+<p>这句话有点绕，看个示例就清晰了。猜猜下面的代码会打印什么</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">b</span> <span class="o">*</span><span class="nx">bytes</span><span class="p">.</span><span class="nx">Buffer</span>
+	<span class="kd">var</span> <span class="nx">w</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Writer</span>
+	<span class="nx">w</span> <span class="p">=</span> <span class="nx">b</span>
+	<span class="k">if</span> <span class="nx">w</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;w is nil&#34;</span><span class="p">)</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;w is NOT nil&#34;</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>答案：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">w is NOT nil
+</code></pre></td></tr></table>
+</div>
+</div><p>接口值，我们可以理解成一个二元组（动态类型、动态值）。在这个示例中w的类型为接口io.Writer，因为<em>bytes.Buffer 实现了Writer的所有接口，所以可以将b赋值给w。代码<code>var w io.Writer</code>执行后，w还是一个零值，即其动态类型、动态值都为空。但是执行到<code>w = b</code>之后，w的动态类型变为</em>bytes.Buffer，而动态值为nil，即（*types.Buffer, nil)。因此w 不再是一个零值（nil)</p>
+<p>单独看这个例子，你可能觉得很简单不会犯错误。但是在实际的生产代码中，我们可能会写很多函数，其参数接受一个接口，为了防止panic，我们会对参数进行nil判断。但是因为调用方分散在各处，我们很有可能传递一个接口值不为nil但是动态值为nil的参数，如果这个参数它正好能处理接受者（receiver)为nil的情况，这就可能导致我们的函数不会panic，但是也不会正常运行，变成一个藏得很深的bug。</p>
 <h2 id="heading">参考资料</h2>
 <p><a href="https://golang.org/doc/effective_go.html">https://golang.org/doc/effective_go.html</a></p>
 <p><a href="https://golang.org/ref/mem">https://golang.org/ref/mem</a></p>
@@ -1037,7 +1082,7 @@ true 0x10939e0
     &copy;
     
       2019 -
-    2020
+    2021
     <span class="heart">
       
       <i class="iconfont">

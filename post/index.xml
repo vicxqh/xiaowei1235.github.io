@@ -5,10 +5,37 @@
     <link>http://auntlei.com/post/</link>
     <description>Recent content in Posts on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 03 Sep 2020 14:50:13 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 05 Feb 2021 16:16:27 +0800</lastBuildDate>
     
 	<atom:link href="http://auntlei.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>用Golang实现内网穿透代理</title>
+      <link>http://auntlei.com/post/net/srp/</link>
+      <pubDate>Fri, 05 Feb 2021 16:16:27 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/net/srp/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>《高性能MySQL》读书笔记</title>
+      <link>http://auntlei.com/post/reading/highperfmysql/</link>
+      <pubDate>Tue, 26 Jan 2021 10:44:14 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/highperfmysql/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Kubernetes 官方文档学习笔记</title>
+      <link>http://auntlei.com/post/reading/kubernetes/</link>
+      <pubDate>Fri, 09 Oct 2020 15:50:47 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/kubernetes/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>《Docker Deep Dive》读书笔记</title>

@@ -5,10 +5,37 @@
     <link>http://auntlei.com/tags/</link>
     <description>Recent content in Tags on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 02 Apr 2020 17:07:20 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 05 Feb 2021 16:16:27 +0800</lastBuildDate>
     
 	<atom:link href="http://auntlei.com/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>golang</title>
+      <link>http://auntlei.com/tags/golang/</link>
+      <pubDate>Fri, 05 Feb 2021 16:16:27 +0800</pubDate>
+      
+      <guid>http://auntlei.com/tags/golang/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>网络</title>
+      <link>http://auntlei.com/tags/%E7%BD%91%E7%BB%9C/</link>
+      <pubDate>Fri, 05 Feb 2021 16:16:27 +0800</pubDate>
+      
+      <guid>http://auntlei.com/tags/%E7%BD%91%E7%BB%9C/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>mysql</title>
+      <link>http://auntlei.com/tags/mysql/</link>
+      <pubDate>Tue, 26 Jan 2021 10:44:14 +0800</pubDate>
+      
+      <guid>http://auntlei.com/tags/mysql/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>boltdb</title>
@@ -16,15 +43,6 @@
       <pubDate>Thu, 02 Apr 2020 17:07:20 +0800</pubDate>
       
       <guid>http://auntlei.com/tags/boltdb/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>golang</title>
-      <link>http://auntlei.com/tags/golang/</link>
-      <pubDate>Thu, 02 Apr 2020 17:07:20 +0800</pubDate>
-      
-      <guid>http://auntlei.com/tags/golang/</guid>
       <description></description>
     </item>
     
@@ -79,15 +97,6 @@
       <pubDate>Wed, 25 Dec 2019 22:47:46 +0800</pubDate>
       
       <guid>http://auntlei.com/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>网络</title>
-      <link>http://auntlei.com/tags/%E7%BD%91%E7%BB%9C/</link>
-      <pubDate>Fri, 20 Dec 2019 13:26:45 +0800</pubDate>
-      
-      <guid>http://auntlei.com/tags/%E7%BD%91%E7%BB%9C/</guid>
       <description></description>
     </item>
     

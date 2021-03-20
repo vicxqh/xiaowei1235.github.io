@@ -5,10 +5,19 @@
     <link>http://auntlei.com/tags/golang/</link>
     <description>Recent content in golang on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 02 Apr 2020 17:07:20 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 05 Feb 2021 16:16:27 +0800</lastBuildDate>
     
 	<atom:link href="http://auntlei.com/tags/golang/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>用Golang实现内网穿透代理</title>
+      <link>http://auntlei.com/post/net/srp/</link>
+      <pubDate>Fri, 05 Feb 2021 16:16:27 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/net/srp/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>boltdb源码解析（四）—— ACID特性论证</title>

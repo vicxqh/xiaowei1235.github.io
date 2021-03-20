@@ -5,7 +5,7 @@
     <link>http://auntlei.com/</link>
     <description>Recent content on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 03 Sep 2020 14:50:13 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 05 Feb 2021 16:16:27 +0800</lastBuildDate>
     
         <atom:link href="http://auntlei.com/index.xml" rel="self" type="application/rss+xml" />
     
@@ -27,6 +27,457 @@
 &lt;/ul&gt;
 &lt;p&gt;Learn more and contribute on &lt;a href=&#34;https://github.com/gohugoio&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
 </description>
+      
+    </item>
+    
+    <item>
+      <title>用Golang实现内网穿透代理</title>
+      <link>http://auntlei.com/post/net/srp/</link>
+      <pubDate>Fri, 05 Feb 2021 16:16:27 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/net/srp/</guid>
+      
+        <description>&lt;h2 id=&#34;heading&#34;&gt;动机&lt;/h2&gt;
+&lt;p&gt;想在家里搞个NAS，但是暂时没有充足的资金。正好家里有个闲置老旧笔记本，打算重装Linux之后，用来挂PT下载影视资源给电视串流，当成NAS使用。但是位于内外的服务器总归不够方便，需要内网穿透。虽然市场上已经有相对成熟的内网穿透工具，比如frp。但是配置frp的时候遇到了些问题，正好空闲，计划用自己写一个内网穿透工具。&lt;/p&gt;
+&lt;h2 id=&#34;heading-1&#34;&gt;术语&lt;/h2&gt;
+&lt;p&gt;服务端：本系统中在运行在具有公网IP的机器上的软件。&lt;/p&gt;
+&lt;p&gt;客户端：本系统中运行在需要被暴露的内网环境中的软件，通常位于NAT设备之后。&lt;/p&gt;
+&lt;p&gt;用户：系统之外，访问系统服务端绑定的某一端口的任何软件。&lt;/p&gt;
+&lt;p&gt;内网服务：通过客户端被服务端暴露之后可被用户访问的软件。&lt;/p&gt;
+&lt;h2 id=&#34;heading-2&#34;&gt;功能描述&lt;/h2&gt;
+&lt;h3 id=&#34;heading-3&#34;&gt;目标&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;跨平台，客户端、服务端需要能运行在主流操作系统中，包括Mac/Linux/Windows&lt;/li&gt;
+&lt;li&gt;能在公网机器上转发任意TCP流量到任意内网服务&lt;/li&gt;
+&lt;li&gt;对于任一内网服务，需要支持多个并发用户访问&lt;/li&gt;
+&lt;li&gt;可以同时暴露多个内网服务&lt;/li&gt;
+&lt;li&gt;客户端具备自动重连功能&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;heading-4&#34;&gt;暂时不考虑/后期可增加的功能&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;GUI&lt;/li&gt;
+&lt;li&gt;其它协议的支持，如果UDP，或者针对更上层协议（如HTTP）的特殊优化（更易于使用）&lt;/li&gt;
+&lt;li&gt;多个相同内网服务间的负载均衡&lt;/li&gt;
+&lt;li&gt;通信 鉴权、加密&lt;/li&gt;
+&lt;li&gt;(可能的)性能优化&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;heading-5&#34;&gt;系统设计&lt;/h2&gt;
+&lt;p&gt;系统的工作原理很简单。服务端会绑定很多端口，每个端口会映射到不同的被暴露的内网服务。用户通过请求特定的端口来请求特定的被暴露的内网服务。服务端在接受用户的请求之后，通过服务端-客户端之间的通道，将流量转发给内网服务，并且回复内网服务的回包。&lt;/p&gt;
+&lt;p&gt;这其中最关键的部分就是如何构建一个转发通道。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210208152705.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;----&#34;&gt;通信协议 &amp;ndash; 转发通道设计&lt;/h3&gt;
+&lt;p&gt;为了对来自不同用户的流量进行隔离，一个简单直观的方案就是为来自每个用户的链接，都创建一个到客户端的链接，客户端再创建一个到内网服务的链接，如下图所示。但问题在于位于公网的服务端没有办法主动与位于内网的客户端建立链接。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210207162216.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;既然链接只能从客户端发起，那么我们怎么才能实现转发不同用户流量呢？我这里想到有两种方案。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;方案一 链接复用，客户端服务端之间封装私有7层协议&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210207164005.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;服务端启动之后，客户端请求服务端建立链接。此链接用于转发该机器上暴露的所有内网服务流量。客户端与服务端通过为数据包打上自定义的协议头，来区分不同用户不同服务之间的流量。&lt;/p&gt;
+&lt;p&gt;自定义协议最少需要包含三部分信息：用户ID、内网服务ID。因为我们转发的是TCP协议，因此每个ID都可以使用对端链接的IP+Port来识别。用户ID+内网服务ID能唯一地确定一个用户和服务的会话。如下图定义的协议头中，我们引入了16字节的overhead。需要注意的是，其中的用户IP、Port可能是NAT设备的地址，但是这并不影响协议工作。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210210113402.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;方案二 服务端控制客户端主动建立链接，每个用户的请求一个单独的物理通道&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;虽然服务端不可以主动和客户端建立连接，但是在客户端与服务端建立初次链接之后（控制流链接），服务端可以向客户端发送控制指令，协调客户端向服务端建立链接。**这种方案要解决的关键问题是怎么让服务端知道新建链接中哪一条是客户端在控制指令之下创建的。**虽然TCP链接包含了本地端口和远端端口信息。但是因为客户端位于NAT网络之后，通过告诉服务端自己的本地端口号并不能让服务端从一众新建连接中找到这条特殊的链接。既然从TCP协议层信息中无法取出足够的信息，那么我们只能通过更上层的方法来识别。&lt;/p&gt;
+&lt;p&gt;一个简单的方案&lt;/p&gt;
+&lt;p&gt;客户端：在被控制建立链接之后，会向服务端发送一个握手包，这个握手包包含了一个随机生成的ID来表示链接名字。&lt;/p&gt;
+&lt;p&gt;服务端：转发任何一个链接的流量时，&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;判断此链接是否是首次发送数据&lt;/li&gt;
+&lt;li&gt;如果1成立，则进一步判断是否是自定义握手包。&lt;/li&gt;
+&lt;li&gt;如果2成立，解析握手包中的ID，服务端记录此链接的ID，并通过此链接发送握手确认包。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;当客户端收到握手确认包之后，知道服务端已经建立好新建链接的映射，这时返回控制信息告诉服务端，已经按照要求建立链接，并附带链接ID。&lt;/p&gt;
+&lt;p&gt;之后，用户、服务端、客户端、内网服务之间就可以通过新建立的物理通道进行流量的转发。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210208150919.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;方案对比&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;方案一虽然节省了文件句柄资源，但是需要为每个业务流量都增加额外的自定义协议头会增加带宽消耗。方案二虽然每个来自用户的链接都有一条私有的“通道”，但是在能传输数据之前，相对方案一需要增加在服务端和客户端新建链接的延迟，首帧延迟更高。&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;文件句柄消耗&lt;/th&gt;
+&lt;th&gt;带宽消耗&lt;/th&gt;
+&lt;th&gt;首帧延迟&lt;/th&gt;
+&lt;th&gt;延迟&lt;/th&gt;
+&lt;th&gt;实现复杂度&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;方案一&lt;/td&gt;
+&lt;td&gt;少&lt;/td&gt;
+&lt;td&gt;多&lt;/td&gt;
+&lt;td&gt;低&lt;/td&gt;
+&lt;td&gt;高&lt;/td&gt;
+&lt;td&gt;低&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;方案二&lt;/td&gt;
+&lt;td&gt;多&lt;/td&gt;
+&lt;td&gt;少&lt;/td&gt;
+&lt;td&gt;高&lt;/td&gt;
+&lt;td&gt;低&lt;/td&gt;
+&lt;td&gt;高&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;上面表格只是粗略进行了分析，针对我们自己家的场景和兴趣，最终&lt;strong&gt;选择了方案一&lt;/strong&gt;。&lt;/p&gt;
+&lt;h3 id=&#34;heading-6&#34;&gt;详细设计&lt;/h3&gt;
+&lt;h4 id=&#34;heading-7&#34;&gt;技术选型&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;golang， 跨平台的兼容性和开发效率。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;heading-8&#34;&gt;服务端设计&lt;/h4&gt;
+&lt;p&gt;和别的内网穿透软件客户端可以指定服务端为某个内网服务暴露的端口不一样的是，本文系统中服务端的端口都由服务端掌握。我觉得这是一种更合理的设计，因为服务端端口是服务端的资源，不应该由别的模块来配置。客户端只应该向服务端告知其有哪些服务可以暴露，至于是否暴露、以及怎么暴露应该有服务端决策。为了方便使用，服务端提供了REST接口对各种资源就行查阅、配置。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210208182502.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;服务端可以分为三个模块：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;HTTP Restful 接口
+&lt;ul&gt;
+&lt;li&gt;查看已经建立链接的客户端&lt;/li&gt;
+&lt;li&gt;查看/新增/禁用/删除 客户端暴露的服务&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;链接管理， 管理客户端链接信息&lt;/li&gt;
+&lt;li&gt;服务仓库， 记录所有内网服务的信息&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;http-restful-&#34;&gt;HTTP restful 接口&lt;/h5&gt;
+&lt;p&gt;描述接口前，需要先定义两个关键数据结构：数据连接和内网服务。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;c1&#34;&gt;// ClientConnection represents a client connection that is used for forwarding data between a client and a server.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;type&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ClientConnection&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;ID&lt;/span&gt;          &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// unique
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;Description&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;// Service represents a intranet service exposed on a server.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;type&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;Service&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;ID&lt;/span&gt;          &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// unique
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;Addr&lt;/span&gt;        &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;Description&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;ExposedBy&lt;/span&gt;   &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// ClientConnection.ID
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;ServerPort&lt;/span&gt;  &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// which server port exposes this service
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;c1&#34;&gt;// Enabled     bool   // access to users enabled?
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;​	HTTP 接口&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;GET /api/v1/dataport&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;返回数据管道监听的端口。客户端以此端口与服务端建立转发通道链接&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;GET /api/v1/services&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;返回所有的服务信息。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;GET /api/v1/services/:id&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;返回指定服务的信息&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;POST /api/v1/services&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;创建新服务&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;PUT /api/v1/services/:id&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;更新指定服务状态&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;DELETE /api/v1/services/:id&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;删除指定服务&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;PUT /api/v1/services/:id/exposure&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;修改服务暴露方式&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;DELETE /api/v1/services/:id/expoure&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;删除服务当前的暴露&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;heading-9&#34;&gt;链接管理&lt;/h5&gt;
+&lt;p&gt;服务端除了会监听一个端口用于处理HTTP请求之外，还会监听另外一个用于转发数据的端口。客户端和服务端建立转发通道的流程如下：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;访问接口&lt;code&gt;GET /api/v1/dataport&lt;/code&gt;获得数据接口端口号&lt;/li&gt;
+&lt;li&gt;与服务端的数据接口建立TCP链接&lt;/li&gt;
+&lt;li&gt;向服务端发送链接注册信息&lt;/li&gt;
+&lt;li&gt;服务端接受到注册信息之后，判断ID是否重复
+&lt;ol&gt;
+&lt;li&gt;如果不重复，则回复信息确认，并在服务端注册此链接&lt;/li&gt;
+&lt;li&gt;如果重复，则回复错误信息，并断开连接。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;链接注册信息和服务端确认信息结构体如下，暂定使用json序列化：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;type&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ConnectionRegistrationRequest&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ClientConnection&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;type&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;ConnectionRegistrationResponse&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;Succeeded&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;bool&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;Message&lt;/span&gt;   &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h5 id=&#34;heading-10&#34;&gt;服务仓库&lt;/h5&gt;
+&lt;p&gt;通过HTTP接口，可以向服务端注册内网服务，在收到注册请求之后，服务端会分配一个暴露的端口，用户可以通过访问此端口来房网内网服务&lt;/p&gt;
+&lt;h4 id=&#34;heading-11&#34;&gt;客户端设计&lt;/h4&gt;
+&lt;h2 id=&#34;heading-12&#34;&gt;附&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://restfulapi.net/resource-naming/&#34;&gt;REST API 命名规范&lt;/a&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
+      <title>《高性能MySQL》读书笔记</title>
+      <link>http://auntlei.com/post/reading/highperfmysql/</link>
+      <pubDate>Tue, 26 Jan 2021 10:44:14 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/highperfmysql/</guid>
+      
+        <description>&lt;h2 id=&#34;1-&#34;&gt;第1章 架构与历史&lt;/h2&gt;
+&lt;h3 id=&#34;mysql-&#34;&gt;MySQL 逻辑架构&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210126110213.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;从上到下，可以分为三层。最上层就是普通的客户端；中间一层包含了MySQL的核心逻辑，包含接入授权、查询解析优化等；最下层则是各种存储引擎。&lt;/p&gt;
+&lt;h3 id=&#34;heading&#34;&gt;并发控制&lt;/h3&gt;
+&lt;p&gt;下面提到的锁都是读写锁&lt;/p&gt;
+&lt;p&gt;锁粒度：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;表锁 (table lock)，对整个表加锁&lt;/li&gt;
+&lt;li&gt;行级锁 (row lock)，对指定行加锁&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;事务&lt;/h3&gt;
+&lt;p&gt;事务的四个特性ACID。其中Isolation，隔离性在实践中可以分为四个隔离级别。&lt;/p&gt;
+&lt;h4 id=&#34;heading-2&#34;&gt;隔离级别&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;READ UNCOMMITTED&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;读未提交，事务中的修改，即使没有提交，对其它事务也都是可见的。“脏读”&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;READ COMMITTED&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;只能读已提交的修改。这个级别能解决脏读问题，但是却有新的问题，“不可重复读”——多次执行相同的查询语句时，因为有可能有别的事务提交修改，因此可能会读到不同的结果。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;REPEATABLE READ&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;对于一条数据，多次读取返回的值不会变。但是这个有引入了“幻读”的问题，虽然每一行的值确定不变，但是满足查询条件的行数发生了变化。比如查询一个范围内的记录，虽然对于每行记录每次读取都是一致的，但是因为别的事务可能插入新的记录，导致同样的范围查询返回更多的记录。但是，InnoDB 的MVCC能力解决了“幻读”的问题。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;SERIALIZABLE&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;串行化。通过强制将事务的执行顺序串行化来解决幻读的问题。显而易见，这种方式的性能最差。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210126164519.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;mysql--1&#34;&gt;MySQL 中的事务&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;自动提交&lt;/strong&gt; MySQL默认采用自动提交的模式，即除非你显式的开启一个事务，否则每个查询语句都运行在一个独立的事务中。&lt;/p&gt;
+&lt;p&gt;自动提交模式可以关闭&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;显式锁定与隐式锁定&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;InnoDB 使用“两阶段锁”模式，能在事务执行的任意时间点根据隔离级别的不同自动的获取锁，并且只在事务提交/回滚 之后才释放。&lt;/p&gt;
+&lt;p&gt;也可以使用非标准的SQL语句显式地获得锁。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span class=&#34;k&#34;&gt;SELECT&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;LOCK&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;IN&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;SHARE&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;MODE&lt;/span&gt;
+&lt;span class=&#34;k&#34;&gt;SELECT&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;FOR&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;UPDATE&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;mvcc&#34;&gt;多版本并发控制（MVCC）&lt;/h3&gt;
+&lt;p&gt;虽然行级锁相对表锁有了很大的性能提升，但仍有提升空间。MVCC通过保存数据在某个时间点的快照，解决了幻读问题。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;InnoDB实现原理&lt;/strong&gt;，为每行数据额外增加了两列“最后修改时间”和“删除时间”，其中时间实际上是递增的事务版本号。每个事务只能看到自己的修改，以及在此之前的数据。&lt;/p&gt;
+&lt;p&gt;MVCC只在REPEATABLE READ 和READ COMMITTED两个隔离级别下工作。其它两个隔离级别和MVCC不兼容。MVCC本质是限制读取的数据版本 &amp;lt;= 当前事务版本号，而READ UNCOMMITTED总是读取最新版本，因此不兼容。而SERIALIZABLE则总是在读取每一行数据时都加锁，因此也不兼容。&lt;/p&gt;
+&lt;h3 id=&#34;mysql&#34;&gt;MySQL的存储引擎&lt;/h3&gt;
+&lt;p&gt;MySQL使用文件系统的目录和文件来保存数据库和表的定义。创建表时，&lt;!-- raw HTML omitted --&gt;MySQL会在数据库子目录下创建一个和表同名的&lt;code&gt;.frm&lt;/code&gt;文件保存表的定义&lt;!-- raw HTML omitted --&gt;， &lt;em&gt;最新的MySQL 8.0我没找到这个文件，不过一个数据库是一个目录&lt;/em&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;除非有特殊考虑，默认使用InnoDB引擎&lt;/strong&gt;。InnoDB引擎支持事务（MVCC）和行级锁，对绝大多数影长场景而言，是性能和考虑性综合的最佳选择。&lt;/p&gt;
+&lt;h2 id=&#34;2-mysql&#34;&gt;第2章 MySQL基准测试&lt;/h2&gt;
+&lt;p&gt;就是在“基准”环境（测试集+特定硬件）下的压力测试。可以参考一些在线的数据，https://www.mysql.com/why-mysql/benchmarks/mysql/&lt;/p&gt;
+&lt;h2 id=&#34;3-&#34;&gt;第3章 服务器性能剖析&lt;/h2&gt;
+&lt;p&gt;略&lt;/p&gt;
+&lt;h2 id=&#34;4-schema&#34;&gt;第4章 Schema与数据类型优化&lt;/h2&gt;
+&lt;h3 id=&#34;heading-3&#34;&gt;选择优化的数据类型&lt;/h3&gt;
+&lt;p&gt;三个简单原则&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;尽量使用最小的数据结构。当然前提是此结构能满足存储值的范围&lt;/li&gt;
+&lt;li&gt;尽量使用简单数据结构。比如，整型比字符串操作代价更低。&lt;/li&gt;
+&lt;li&gt;尽量避免NULL。尤其是在要给列建索引的时候。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;heading-4&#34;&gt;整型&lt;/h4&gt;
+&lt;p&gt;有TINYINT， SMALLINT，MEDIUMINT，INT，BIGINT，分别使用8， 16， 24，32，64位存储空间。&lt;/p&gt;
+&lt;p&gt;虽然MySQL可以为INT指定宽度，如INT(11），但它并不会限制合法范围，只是方便交互工具展示。&lt;/p&gt;
+&lt;h4 id=&#34;heading-5&#34;&gt;实数类型&lt;/h4&gt;
+&lt;p&gt;分精确类型（DECIMAL）和不精确类型（浮点数，FLOAT和DOUBLE）。DECIMAL可以存储比BIGINT还要大的整数。&lt;/p&gt;
+&lt;h4 id=&#34;heading-6&#34;&gt;字符串&lt;/h4&gt;
+&lt;p&gt;VARCHAR vs CHAR&lt;/p&gt;
+&lt;p&gt;不同的引擎有不同的存储方式，下面的讨论是假设在InnoDB/MyISAM上。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;VARCHAR&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;存储变长字符串，相对定长字符串，更省空间，因此（读）性能也可能更好。但是UPDATE操作可能产生碎片，或者要求更大的存储空间，而导致（更新）新能降低。&lt;/li&gt;
+&lt;li&gt;适合最大长度明显大于平均长度的场景&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;CHAR&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;定长字符串。所有的值都是一个长度，或者接近一个长度。典型的应用场景如存储密码的MD5值。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;BLOB 和 TEXT&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;同样包含一个家族，TINYXXX，SMALLXXX，XXX， MEDIUMXXX，LONGXXX， 其中XXX和SMALLXXX是同义词。与其它类型不同，MySQL会把BLOB和TEXT最为一个独立对象处理，存储引擎通常采用指针+外部实际存储区域。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;ENUM&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;值域有限的时候可以用ENUM来代替VARCHAR。ENUM背后是整型。&lt;/p&gt;
+&lt;h4 id=&#34;heading-7&#34;&gt;日期和时间类型&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;DATETIME，从1001到9999年，精度为秒，使用8字节&lt;/li&gt;
+&lt;li&gt;TIMESTAMP，精度也为秒，4字节。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;mysql-schema-&#34;&gt;MySQL schema 设计中的陷阱&lt;/h3&gt;
+&lt;p&gt;太多的列， 太多Join，刻意避免NULL（改用的时候可以用NULL，有时候default value可能会引入程序bug）&lt;/p&gt;
+&lt;h3 id=&#34;heading-8&#34;&gt;范式和反范式&lt;/h3&gt;
+&lt;p&gt;应该根据应用场景混合使用&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th&gt;优点&lt;/th&gt;
+&lt;th&gt;缺点&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;范式&lt;/td&gt;
+&lt;td&gt;（通常情况下）更新操作性能更好&lt;/td&gt;
+&lt;td&gt;需要多个join时，读取性能低&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;反范式&lt;/td&gt;
+&lt;td&gt;查询性能改好（顺序IO vs  随机IO）&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;heading-9&#34;&gt;缓存表和汇总表&lt;/h3&gt;
+&lt;p&gt;缓存其实不一定用MySQL来做，如果有其它中间件像redis，应该更好。&lt;/p&gt;
+&lt;p&gt;有一些工具可以提供物化视图，可以监听MySQL的binlog来更新物化视图。&lt;/p&gt;
+&lt;p&gt;这些技术实际上都是为了提升查询性能。&lt;/p&gt;
+&lt;h3 id=&#34;alter-table&#34;&gt;加快ALTER TABLE操作的速度&lt;/h3&gt;
+&lt;p&gt;alter table这个指令太重，通常会创建新的表再从旧表中拷贝所有数据到新表，是一个阻塞的操作。这个部分提到的优化实际上就是将创建+拷贝的操作移到备份库中，（进行双写），等数据一致的时候再执行轻量的“rename”操作来达成alter table的目的。&lt;/p&gt;
+&lt;h2 id=&#34;5-&#34;&gt;第5章 创建高性能的索引&lt;/h2&gt;
+&lt;h3 id=&#34;heading-10&#34;&gt;索引基础&lt;/h3&gt;
+&lt;p&gt;常见的索引包括B-tree(B+tree)和哈希字典。因为构建方式的不同，因此查询的时间复杂度也不一样。理解了索引的构建方式，才能让查询真正享受索引带来的性能优化。比如，B-tree索引，适用于根据最左前缀的查找，但是不能用于尾缀查询。又比如，哈希索引不能进行范围查找。&lt;/p&gt;
+&lt;h3 id=&#34;heading-11&#34;&gt;索引优点&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;大大减少需要扫描的数据量&lt;/li&gt;
+&lt;li&gt;避免排序和临时表。（这个没有感受，不过想B-tree这种索引确实是已经排序好的）&lt;/li&gt;
+&lt;li&gt;将随机IO变为顺序IO。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;heading-12&#34;&gt;高性能的索引策略&lt;/h3&gt;
+&lt;h4 id=&#34;heading-13&#34;&gt;独立的列&lt;/h4&gt;
+&lt;p&gt;应该将包含索引的列单独放在比较符号的一侧。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;WHERE id + 1 = 5&lt;/code&gt; vs &lt;code&gt;WHERE id = 4&lt;/code&gt;, 前者是全表扫描，而后者能利用索引。&lt;/p&gt;
+&lt;h4 id=&#34;heading-14&#34;&gt;前缀索引&lt;/h4&gt;
+&lt;p&gt;如果为很长的字符创设置索引，会让索引变得很大很慢。可以通过给固定长度的前缀设计索引来改善这一问题。当然这势必导致一个唯一的索引值可能指向多个数据表记录。&lt;/p&gt;
+&lt;h4 id=&#34;heading-15&#34;&gt;多列索引&lt;/h4&gt;
+&lt;p&gt;TODO： 多列索引究竟是怎么实现的，为什么相对为每个列单独建一个索引更有优势？&lt;/p&gt;
+&lt;p&gt;需要多列索引的情况：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;当需要对多个索引做相交操作时（多个AND条件）&lt;/li&gt;
+&lt;li&gt;当需要对多个索引做联合操作（多个OR）？！！！ 这里没看懂&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;heading-16&#34;&gt;选择合适的索引列顺序&lt;/h4&gt;
+&lt;p&gt;通常应该将选择性大的放在前面&lt;/p&gt;
+&lt;h4 id=&#34;heading-17&#34;&gt;聚簇索引&lt;/h4&gt;
+&lt;p&gt;聚簇索引是指数据行放在索引的叶子页。&lt;/p&gt;
+&lt;p&gt;聚簇索引和非聚簇索引的布局区别如下图所示。因为聚簇索引在叶子页保存了整个数据行，因此一个表也就只能存在一个聚簇索引，而这就是表的主键。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210204150359.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;对于聚簇索引，有几点要引起额外关注：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;插入速度严重依赖于插入顺序。其实就是B-tree分裂的问题，因为聚簇索引数据也在叶子页，因此分裂的可能性就更大，同时分裂的时候需要移动的数据也更多，也更容易造成碎片。&lt;/li&gt;
+&lt;li&gt;更新索引列代价很高。因为移动的数据太多。&lt;/li&gt;
+&lt;li&gt;二级索引会更大。不过这个算是一个trade-off了，毕竟不用聚簇索引的话，每次更新都要更新所有二级索引的“指针”。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;鉴于上述问题，一般建议MySQL的主键用自增整数，顺序插入。因为是顺序插入的，每条记录都是在上条记录之后，如果达到了分裂因子，下一条记录就会写在了新页中。从整体上，移动的数据变量变小，而且基本上是顺序写，性能高。&lt;/p&gt;
+&lt;h4 id=&#34;heading-18&#34;&gt;覆盖索引&lt;/h4&gt;
+&lt;p&gt;前面聚簇索的情况中，通过二级索引查找数据，需要查找两次索引。一次是二级索引本身，通过此二级索引找到对应的聚簇索引的键值，再以此键值在聚簇索引上查找需要的数据。&lt;/p&gt;
+&lt;p&gt;而覆盖索引，就是索引在叶子页也存储了可能关心的若干列的数据，这样就不需要二次查询了。&lt;/p&gt;
+&lt;p&gt;其实这也是一种通过冗余数据来提升读性能的办法，随之而来也是这种方式常见的问题，比如空间消耗、数据一致性（更新操作麻烦）等。&lt;/p&gt;
+&lt;p&gt;// 剩下的几个小节是索引优化和排序相关的问题，因为没有遇到就跳过了。这些内容都是受限于具体索引的实现，现在深入学习没有必要，因为引擎本身可能变，这些优化方式也可能变或者自动化。&lt;/p&gt;
+&lt;h2 id=&#34;6-&#34;&gt;第6章 查询性能优化&lt;/h2&gt;
+&lt;h3 id=&#34;heading-19&#34;&gt;慢查询基础：优化数据访问&lt;/h3&gt;
+&lt;p&gt;两个步骤依次进行&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;确认应用程序是否检索了大量超过实际需要的数据。&lt;/li&gt;
+&lt;li&gt;确认MySQL服务器是否分析了大量超过需要的数据。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;heading-20&#34;&gt;查询执行的基础知识&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210204174817.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;heading-21&#34;&gt;客户端/服务端通信协议&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;半双工&lt;/strong&gt; 服务端和客户端都可以向彼此发送消息的，但是一旦一端开始发送消息，另一端需要收完整个消息之后才能响应。&lt;/p&gt;
+&lt;p&gt;因为这个通信方式，通常在查询的时候最好加上LIMIT限制。&lt;/p&gt;
+&lt;h4 id=&#34;heading-22&#34;&gt;查询缓存&lt;/h4&gt;
+&lt;p&gt;是对Query及其Query结果的缓存。缓存命中可以跳过后续步骤&lt;/p&gt;
+&lt;h4 id=&#34;heading-23&#34;&gt;查询优化处理&lt;/h4&gt;
+&lt;p&gt;和编译原理中的东西很相似，先做静态的解析和优化（等价转换），动态优化通过一些列办法来评估各种查询计划可能的成本，并从中选择一个最低的。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;针对优化器的目前特性而做的“优化”其实必要性不是很大，除非这个优化确实被证实了目前系统的性能瓶颈所在，否则不仅看不见收益，还可能让代码变得更不容易维护，甚至这些“优化”可能在后续版本中反而降低性能。因此这部分我看得不是很仔细，如果生产中遇到了这些问题，再针对当前的环境来做分析。&lt;/strong&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
+      <title>Kubernetes 官方文档学习笔记</title>
+      <link>http://auntlei.com/post/reading/kubernetes/</link>
+      <pubDate>Fri, 09 Oct 2020 15:50:47 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/reading/kubernetes/</guid>
+      
+        <description>&lt;h2 id=&#34;kubernetes-&#34;&gt;kubernetes 解决了什么问题&lt;/h2&gt;
+&lt;p&gt;kubernetes解决了容器部署应用场景中&lt;strong&gt;部署流程&lt;/strong&gt;、**故障自动检测与转移（failover）**这两个最基本的问题。其它能力都可以被认作是衍生的能力，比如容期间的负载均衡、服务发现、打包镜像、密钥管理等。我之所以认为它们是衍生能力是因为，哪怕没有kubernetes，我们也能通过其他成熟方案解决。&lt;/p&gt;
+&lt;h2 id=&#34;heading&#34;&gt;架构&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20201010155239.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;kubernets架构可以分为控制面和节点。其中控制面管理整个集群的信息并对提供操作接口，而节点作为具体的物理资源则负责运行容器任务。&lt;/p&gt;
+&lt;p&gt;TODO：各模块定位&lt;/p&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;控制面&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;api server  是kubernetes的控制面的入口，暴露了kubernetes的服务接口&lt;/li&gt;
+&lt;li&gt;control manager 用于监听、管理集群的事件，包括节点管理器、副本管理器等&lt;/li&gt;
+&lt;li&gt;kube-scheduler 负责为Pod分配节点等调度任务&lt;/li&gt;
+&lt;li&gt;cloud control manager(可选) 对公有云资源进行包装，使得kubernetes能管理公有云的资源，而不仅仅是企业内部机房。&lt;/li&gt;
+&lt;li&gt;etcd 存储元信息&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;heading-2&#34;&gt;节点&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;kubelet 负责在节点上运行pod&lt;/li&gt;
+&lt;li&gt;kube-proxy 管理节点上的网络、并且提供部分kubernetes服务接口。（这个定位感觉比较模糊，以后可能还会再拆吧？）&lt;/li&gt;
+&lt;/ul&gt;</description>
       
     </item>
     
@@ -1295,6 +1746,46 @@ true 0x10939e0
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;当然修复的办法可以是内嵌&lt;code&gt;* sync.Map&lt;/code&gt;, 但是这样初始化的时候不够优雅，还需要单独初始化内部的map指针。我个人更倾向于与将&lt;code&gt;Enter&lt;/code&gt; 的接受者申明为&lt;code&gt;* ConcurrentLocker&lt;/code&gt;, 这样既逻辑正确，其作为整体暴露的函数的接受者也统一。&lt;/p&gt;
+&lt;h2 id=&#34;interface&#34;&gt;interface&lt;/h2&gt;
+&lt;h3 id=&#34;nilnil&#34;&gt;动态值为nil的接口值不为nil&lt;/h3&gt;
+&lt;p&gt;这句话有点绕，看个示例就清晰了。猜猜下面的代码会打印什么&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;main&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;bytes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Buffer&lt;/span&gt;
+	&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;w&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;io&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Writer&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;w&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;w&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;w is nil&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;else&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;w is NOT nil&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;答案：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;w is NOT nil
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;接口值，我们可以理解成一个二元组（动态类型、动态值）。在这个示例中w的类型为接口io.Writer，因为&lt;em&gt;bytes.Buffer 实现了Writer的所有接口，所以可以将b赋值给w。代码&lt;code&gt;var w io.Writer&lt;/code&gt;执行后，w还是一个零值，即其动态类型、动态值都为空。但是执行到&lt;code&gt;w = b&lt;/code&gt;之后，w的动态类型变为&lt;/em&gt;bytes.Buffer，而动态值为nil，即（*types.Buffer, nil)。因此w 不再是一个零值（nil)&lt;/p&gt;
+&lt;p&gt;单独看这个例子，你可能觉得很简单不会犯错误。但是在实际的生产代码中，我们可能会写很多函数，其参数接受一个接口，为了防止panic，我们会对参数进行nil判断。但是因为调用方分散在各处，我们很有可能传递一个接口值不为nil但是动态值为nil的参数，如果这个参数它正好能处理接受者（receiver)为nil的情况，这就可能导致我们的函数不会panic，但是也不会正常运行，变成一个藏得很深的bug。&lt;/p&gt;
 &lt;h2 id=&#34;heading&#34;&gt;参考资料&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&#34;https://golang.org/doc/effective_go.html&#34;&gt;https://golang.org/doc/effective_go.html&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;a href=&#34;https://golang.org/ref/mem&#34;&gt;https://golang.org/ref/mem&lt;/a&gt;&lt;/p&gt;
