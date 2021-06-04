@@ -5,10 +5,19 @@
     <link>http://auntlei.com/post/</link>
     <description>Recent content in Posts on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Fri, 05 Feb 2021 16:16:27 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 26 Mar 2021 15:44:51 +0800</lastBuildDate>
     
 	<atom:link href="http://auntlei.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>golang进阶知识</title>
+      <link>http://auntlei.com/post/golang/advanced-go/</link>
+      <pubDate>Fri, 26 Mar 2021 15:44:51 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/golang/advanced-go/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>用Golang实现内网穿透代理</title>
@@ -133,15 +142,6 @@
       <pubDate>Mon, 20 Jan 2020 07:12:29 +0800</pubDate>
       
       <guid>http://auntlei.com/post/misc/etf/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>活出生命的意义</title>
-      <link>http://auntlei.com/post/reading/meaning_of_life/</link>
-      <pubDate>Sun, 12 Jan 2020 17:04:39 +0800</pubDate>
-      
-      <guid>http://auntlei.com/post/reading/meaning_of_life/</guid>
       <description></description>
     </item>
     

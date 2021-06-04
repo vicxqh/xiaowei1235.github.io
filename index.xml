@@ -5,7 +5,7 @@
     <link>http://auntlei.com/</link>
     <description>Recent content on 萧七海的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Fri, 05 Feb 2021 16:16:27 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 26 Mar 2021 15:44:51 +0800</lastBuildDate>
     
         <atom:link href="http://auntlei.com/index.xml" rel="self" type="application/rss+xml" />
     
@@ -27,6 +27,88 @@
 &lt;/ul&gt;
 &lt;p&gt;Learn more and contribute on &lt;a href=&#34;https://github.com/gohugoio&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
 </description>
+      
+    </item>
+    
+    <item>
+      <title>golang进阶知识</title>
+      <link>http://auntlei.com/post/golang/advanced-go/</link>
+      <pubDate>Fri, 26 Mar 2021 15:44:51 +0800</pubDate>
+      
+      <guid>http://auntlei.com/post/golang/advanced-go/</guid>
+      
+        <description>&lt;h2 id=&#34;goroutine-goroutine&#34;&gt;goroutine 是如何调度的？为什么可以在单核上创建百万级goroutine&lt;/h2&gt;
+&lt;h3 id=&#34;gmp-&#34;&gt;GMP 调度模型&lt;/h3&gt;
+&lt;p&gt;采用GMP模型来调度，即将G个goroutine，分为P个processor 分组，调度到底层的M个OS thread之上。P为逻辑概念，用户可配，默认为CPU核数。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;G 每个goroutine维护了运行状态及栈信息&lt;/li&gt;
+&lt;li&gt;P 每个P都有一个local run queue。此外系统也有全局的run queue。 任何一个可运行的go routine必须保存到P的局部队列或者全局队列中&lt;/li&gt;
+&lt;li&gt;M 必须和一个P绑定才可以运行goroutine。当M在运行goroutine即将进入syscall之前，会将P传递给另外一个M。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210328123805.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;整体逻辑如图：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210328121446.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;growable-stack&#34;&gt;growable stack&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210328144933.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;在每个P中维护stack cash&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;![image-20210328145021444](../../../../../../Library/Application Support/typora-user-images/image-20210328145021444.png)&lt;/p&gt;
+&lt;h3 id=&#34;heading&#34;&gt;参考资料&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://medium.com/@ankur_anand/illustrated-tales-of-go-runtime-scheduler-74809ef6d19b&#34;&gt;Illustrated Tales of Go Runtime Scheduler.&lt;/a&gt; 介绍go为什么要采用三层调度。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;首先，为什么不是一层调度（即只用os thread)? 因为context 需要保存的信息多，并且context switch开销也大&lt;/p&gt;
+&lt;p&gt;其次，为什么不是两层调度？ 两层调度M:N模型，M个OS thread负责调度N个go routine。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;如果所有的OS thread都从一个全局的队列中获取并执行go routine，那么这个共享区域需要一个锁保护，不可横向扩展。并且，如果一个goroutine不断地在不同的OS thread上执行，那么这个go routine很可能在不同的CPU之间来回偏移，不能利用CPU缓存（L1~L2 cache)带来的性能提升&lt;/li&gt;
+&lt;li&gt;如果每个OS thread都有一个局部的队列，也同样有问题。OS thread在进行syscall的时候会被block，此时局部队列上的其它goroutine不能被执行，为了保证CPU被充分利用，其它局部队列为空的空闲的OS thread需要从别的OS thread之上“偷”goroutine来执行，遍历每个OS thread的局部队列是一个O(M)的过程，而M通常比希望的实际运行并行数量要大。比如一个4核CPU，我们可能有100个OS thread，但是实际并&lt;strong&gt;行&lt;/strong&gt;（注意不是并发）的goroutine数量最多只有4个。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://speakerdeck.com/retervision/go-runtime-scheduler&#34;&gt;Gao Chao的《go runtime scheduler》slides&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;包含了Local Run Queue， global run queue的图示，以及work sharing 以及 work stealing的算法。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;YouTube《Go scheduler: Implementing language with light weight concurrentcy》by Dmitry VyuKov&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;详细地解释go scheduler为什么要这样设计，比前面两个资料有更多的细节。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;比如在P的FIFO 本地队列之前，还有一个大小唯一的LIFO队列，这样能做到更好的locality&lt;/li&gt;
+&lt;li&gt;怎么保证global run queue中的不会被饿死？每61次调度循环之后，一定要查询一个global run queue&lt;/li&gt;
+&lt;li&gt;goroutine的stack是怎么组织的？为什么goroutine的开销这么低。growable stack一开始很小，按需增大。在GC的时候如果stack有很多闲置空间再回收&lt;/li&gt;
+&lt;li&gt;以及未来可能的演化方向&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;channel-select&#34;&gt;channel 与select是怎么工作的&lt;/h2&gt;
+&lt;p&gt;Chanel 比较直观：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;有一个锁保护内部结构，发送/接收之前需要获取这个锁&lt;/li&gt;
+&lt;li&gt;有一个环状的buffer（可能大小为0）&lt;/li&gt;
+&lt;li&gt;一个recvq保存阻塞在接收的goroutines&lt;/li&gt;
+&lt;li&gt;一个sendq保存阻塞在发送的goroutines&lt;/li&gt;
+&lt;li&gt;在发送数据时，如果此时recvq有阻塞的goroutine，那么数据直接从发送goroutine “复制”到recvq队列中的第一个goroutine中，并将此goroutine变成runnable供调度。反之亦然&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;select:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;将涉及到的channel按照内存地址排序，获取所有channel的锁。排序获取是为了防止死锁&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;随机&lt;/strong&gt;地确定一个轮询顺序，依次判断每个case，有满足的则中断，不再轮询后续case&lt;/li&gt;
+&lt;li&gt;如果没有任何一个case满足，那么将当前goroutine添加到对应channel对应的recvq/sendq中&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;heading-1&#34;&gt;参考资料&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://codeburst.io/diving-deep-into-the-golang-channels-549fd4ed21a8&#34;&gt;Diving Deep Into The Golang Channels&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;golang-&#34;&gt;golang 是怎么分配内存的，怎么进行垃圾回收&lt;/h2&gt;
+&lt;p&gt;目前就进行了粗略的理解：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;按对象大小进行多级分层的分配策略&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;GC  使用三色标记法，属于mark&amp;amp;swipe的大类，三色标记提升了并发性，但是也不能完全不STW&lt;/p&gt;
+&lt;p&gt;TODO：&lt;/p&gt;
+&lt;p&gt;发现这个作者的文章真不错https://draveness.me/golang/docs/part3-runtime/ch07-memory/golang-memory-allocator/&lt;/p&gt;</description>
       
     </item>
     
@@ -363,7 +445,7 @@
 &lt;li&gt;TIMESTAMP，精度也为秒，4字节。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id=&#34;mysql-schema-&#34;&gt;MySQL schema 设计中的陷阱&lt;/h3&gt;
-&lt;p&gt;太多的列， 太多Join，刻意避免NULL（改用的时候可以用NULL，有时候default value可能会引入程序bug）&lt;/p&gt;
+&lt;p&gt;太多的列， 太多Join，刻意避免NULL（该用的时候可以用NULL，有时候default value可能会引入程序bug）&lt;/p&gt;
 &lt;h3 id=&#34;heading-8&#34;&gt;范式和反范式&lt;/h3&gt;
 &lt;p&gt;应该根据应用场景混合使用&lt;/p&gt;
 &lt;table&gt;
@@ -449,7 +531,58 @@
 &lt;p&gt;是对Query及其Query结果的缓存。缓存命中可以跳过后续步骤&lt;/p&gt;
 &lt;h4 id=&#34;heading-23&#34;&gt;查询优化处理&lt;/h4&gt;
 &lt;p&gt;和编译原理中的东西很相似，先做静态的解析和优化（等价转换），动态优化通过一些列办法来评估各种查询计划可能的成本，并从中选择一个最低的。&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;针对优化器的目前特性而做的“优化”其实必要性不是很大，除非这个优化确实被证实了目前系统的性能瓶颈所在，否则不仅看不见收益，还可能让代码变得更不容易维护，甚至这些“优化”可能在后续版本中反而降低性能。因此这部分我看得不是很仔细，如果生产中遇到了这些问题，再针对当前的环境来做分析。&lt;/strong&gt;&lt;/p&gt;</description>
+&lt;p&gt;&lt;strong&gt;针对优化器的目前特性而做的“优化”其实必要性不是很大，除非这个优化确实被证实了目前系统的性能瓶颈所在，否则不仅看不见收益，还可能让代码变得更不容易维护，甚至这些“优化”可能在后续版本中反而降低性能。因此这部分我看得不是很仔细，如果生产中遇到了这些问题，再针对当前的环境来做分析。&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;7-mysql&#34;&gt;第7章 MySQL高级特性&lt;/h2&gt;
+&lt;h3 id=&#34;71-&#34;&gt;7.1 分区表&lt;/h3&gt;
+&lt;p&gt;分区表对SQL层来说是完全透明的。 物理上每个分区的索引是独立的。&lt;/p&gt;
+&lt;p&gt;INSERT、DELETE、UPDATE操作在分区层都会先打开并锁住所有底层表，然后再过滤（释放）不需要的分区表的锁。&lt;/p&gt;
+&lt;h3 id=&#34;72-&#34;&gt;7.2 视图&lt;/h3&gt;
+&lt;p&gt;视图有两种实现方式：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;合并，即重写含有视图的查询语句&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;临时表，视图生成一张临时表，查询发生在这张临时表之上。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210403182532.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;73-&#34;&gt;7.3 外键约束&lt;/h3&gt;
+&lt;p&gt;外键是有成本的，每次修改操作都需要在另外进行一次查找操作。&lt;/p&gt;
+&lt;h3 id=&#34;7477-&#34;&gt;7.4~7.7 运行自定义函数相关的&lt;/h3&gt;
+&lt;p&gt;书中介绍有利有弊。最简单的优点比如说离数据更近，减少了round trip的开销。&lt;/p&gt;
+&lt;p&gt;但是我在工作中大家都更倾向于将逻辑更靠近应用程序。&lt;/p&gt;
+&lt;h3 id=&#34;712-&#34;&gt;7.12 查询缓存&lt;/h3&gt;
+&lt;p&gt;MySQL可以缓存整个查询的结果，如果查询背后的表没有发生变更则可以直接返回缓存结果。&lt;/p&gt;
+&lt;p&gt;但是工作中我们基本都是靠系统之外的缓存。&lt;/p&gt;
+&lt;h2 id=&#34;8-&#34;&gt;第8章 优化服务器配置&lt;/h2&gt;
+&lt;p&gt;一般情况系应该是使用基础配置/默认配置而不是将精力放在优化配置之上。应该将重心放在优化schema、查询这些通用的事情之上。过度优化的配置甚至可能导致服务器的不稳定。&lt;/p&gt;
+&lt;h2 id=&#34;9-&#34;&gt;第9章 操作系统和硬件优化&lt;/h2&gt;
+&lt;p&gt;略&lt;/p&gt;
+&lt;h2 id=&#34;10-&#34;&gt;第10章 复制&lt;/h2&gt;
+&lt;p&gt;MySQL支持两种复制方式：基于语句，和基于行的复制。&lt;/p&gt;
+&lt;h3 id=&#34;heading-24&#34;&gt;复制概述&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20210405113158.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;highlight：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;从库的复制线程是单线程&lt;/li&gt;
+&lt;li&gt;主库写入binlog之后，事务就可以返回，不用等待从库复制&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;heading-25&#34;&gt;复制的原理&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;基于语句 在从库上重放语句（会额外记录一些信心保证重发语句的一致，比如当前时间戳等）&lt;/li&gt;
+&lt;li&gt;基于行 记录的是数据&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;heading-26&#34;&gt;复制拓扑&lt;/h3&gt;
+&lt;p&gt;书中概括了常见的复制拓扑，包括一主多备，主从等常见拓扑。拓扑的选择还是取决于应用场景，以及对可行性的要求。&lt;/p&gt;
+&lt;h2 id=&#34;11-mysql&#34;&gt;第11章 可扩展的MySQL&lt;/h2&gt;
+&lt;p&gt;在进行系统扩展之前，可以先想办法为扩展赢得时间，比如：切换存储引擎、优化schema等。在找出水平扩展的方案之前，可以先尝试纵向扩展进一步争取时间。&lt;/p&gt;
+&lt;h3 id=&#34;heading-27&#34;&gt;水平扩展&lt;/h3&gt;
+&lt;p&gt;水平扩展有三个部分：复制、拆分、数据分片。&lt;/p&gt;
+&lt;p&gt;复制：比如主备、一主多备、主从、双主等，数据存在（复制）多个节点，从而提高系统性能&lt;/p&gt;
+&lt;p&gt;拆分：按功能进行拆分，比如将一个大型网站的数据库拆分为论坛、新闻等不同子功能&lt;/p&gt;
+&lt;p&gt;数据分片：&lt;strong&gt;最常见、最成功的方式&lt;/strong&gt;。分片技术通常会有一个抽象的访问层，复杂度会比较高。除非必要，不要分片。一般来说，只有流量特别巨大的服务才需要分片。&lt;/p&gt;
+&lt;h2 id=&#34;12-&#34;&gt;第12章 高可用性&lt;/h2&gt;</description>
       
     </item>
     
@@ -1891,21 +2024,6 @@ true 0x10939e0
 &lt;strong&gt;500ETF&lt;/strong&gt;7.0， 8.0，9.0 三个参考点，要求年化&amp;gt;10%&lt;br&gt;
 &lt;img src=&#34;https://xiaoqihai.oss-cn-shanghai.aliyuncs.com/img/20200120073806.png&#34; alt=&#34;&#34;&gt;
 &lt;strong&gt;调整心态，不求最优解&lt;/strong&gt;&lt;/p&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>活出生命的意义</title>
-      <link>http://auntlei.com/post/reading/meaning_of_life/</link>
-      <pubDate>Sun, 12 Jan 2020 17:04:39 +0800</pubDate>
-      
-      <guid>http://auntlei.com/post/reading/meaning_of_life/</guid>
-      
-        <description>&lt;p&gt;前阵子从同事那买入了一个二手kindle，我那模糊的愿望单里又划掉了一条项目，内心喜悦溢于言表。这是继ipad，mac之后又一个读书时的“奢望”被满足，当然高兴！本着物尽其用的朴素思想，也趁着这新入手的高兴劲，装一个读书人。这一口气便读了三本书。&lt;/p&gt;
-&lt;p&gt;《活着》，简简单单两个字是书名也是对整本书最好的概括。主人翁福贵出生地主家庭，是典型的纨绔子弟，不学无术、噬赌成命，终于败光所有家业一贫如洗。人在遭遇这种大变故时，都容易产生轻生的想法。不过想法归想法，很多人还是选择“活着”。福贵也活着面对接下来的清苦生活，也面对了后来命运对他的一切捉弄——出门给病危的老娘买药却被抓壮丁，好不容易从战场活着回来，可是老娘已经去世大女儿也因为一场意外变成了聋哑人。到后来的大饥荒、大跃进、以及文化大革命，命运持续不断地捉弄着这个苦命人，最后落得孤家寡人一枚。活着是福贵最朴素的思想，支撑他承受着命运的酸甜苦辣。但是人不应该只是“活着”，而是应该活出生命的意义。&lt;/p&gt;
-&lt;p&gt;《活出生命的意义》是弗兰克尔对生命的思考，这种思考最终帮助他从纳粹集中营幸存下来。这本书不是一部文学作品，而是一部心理学作品。书的前半部分是对自己在集中营经历的描述，在描述的过程中阐述自己的的心里学观点。而后半部分则是对意义疗法的总结和实践指导。想帮助一个人活下去，就帮助他找到生命的意义，这个意义可以很简单，就是一个简单的责任，比如许三观对家庭的责任。&lt;/p&gt;
-&lt;p&gt;看了余华的《活着》觉得意犹未尽，于是又拜读了他的另一部经典著作，《许三观卖血记》。与《活着》充满了生活的沉重感不同，《许三观卖血记》在艰苦中透露着希望。当生活中有迈不过去的砍时，总是可以通过卖血这一离谱的生意来渡过。卖血之所以离谱是因为一次卖血35块钱，已经超过了一户农民一年的所得。这钱来得太容易，就好比摇钱树一般，但实际上确实用命在赌博。第一次读到许三观去卖血，我就担心他会染上严重的传染病，可许三观是幸运的。这使得读这本书的时候轻松不少。许三观是刀子嘴、豆腐心，在邻里有难之时还是愿意帮忙。不过虽然帮忙、但是嘴上依旧咄咄逼人、这些描写十分有趣。&lt;/p&gt;
-&lt;p&gt;虽然有了kindle，可是我也快而立之年了，生命的意义当然不是拥有一个kindle、或者其它新奇的电子产品。那生命的意义是什么？娶妻生子、传宗接代？这些可以是人生路上的必经路，但是不应该是朝着终点行进的动力源泉。我还不知道人生的意义，但是有一点是明确的，我必须自己做选择，然后承担后果。我一定要保持自己的精神自由，选择自己的性格，自己的道德，哪怕处于何种苦痛和压迫之中。物质能影响选择的难度，但不能决定选择的结果。最简单地，当我快控制不住自己的脾气时，当我内心产生冲动时，一定要想想这是我想象中的我应有的行为吗？人活着如果不思考，不规划，只是被环境驱使，那就和羊群中的羊没有区别，生存的意义也不再属于自己。&lt;/p&gt;</description>
       
     </item>
     

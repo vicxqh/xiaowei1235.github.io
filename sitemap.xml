@@ -9,6 +9,27 @@
   </url>
   
   <url>
+    <loc>http://auntlei.com/post/golang/advanced-go/</loc>
+    <lastmod>2021-03-26T15:44:51+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/post/</loc>
+    <lastmod>2021-03-26T15:44:51+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://auntlei.com/</loc>
+    <lastmod>2021-03-26T15:44:51+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://auntlei.com/categories/</loc>
     <lastmod>2021-02-05T16:16:27+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -17,13 +38,6 @@
   
   <url>
     <loc>http://auntlei.com/tags/golang/</loc>
-    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://auntlei.com/post/</loc>
     <lastmod>2021-02-05T16:16:27+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -52,13 +66,6 @@
   
   <url>
     <loc>http://auntlei.com/categories/%E7%BD%91%E7%BB%9C/</loc>
-    <lastmod>2021-02-05T16:16:27+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://auntlei.com/</loc>
     <lastmod>2021-02-05T16:16:27+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -207,13 +214,6 @@
   <url>
     <loc>http://auntlei.com/tags/%E8%82%A1%E5%B8%82/</loc>
     <lastmod>2020-01-20T07:12:29+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://auntlei.com/post/reading/meaning_of_life/</loc>
-    <lastmod>2020-01-12T17:04:39+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
